@@ -72,7 +72,7 @@ export class InputController {
             this.lastTouchX = e.touches[0].clientX;
             this.lastTouchY = e.touches[0].clientY;
           }
-        });
+        }, { passive: false });
         
         gameContainer.addEventListener('touchmove', (e) => {
           // Only handle touchmove on the left side of the screen
@@ -88,10 +88,10 @@ export class InputController {
               const deltaY = touchY - this.lastTouchY;
               
               // Only apply movement if there's a significant change to avoid drift
-              if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
-                // Update rotation values based on touch movement - with reduced sensitivity
-                this.mouseMovementX = deltaX * 0.2; // Reduce sensitivity
-                this.mouseMovementY = deltaY * 0.2; // Reduce sensitivity
+              if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+                // Update rotation values based on touch movement - with improved sensitivity
+                this.mouseMovementX = deltaX * 0.5; // Increase sensitivity
+                this.mouseMovementY = deltaY * 0.5; // Increase sensitivity
               } else {
                 // Reset for small movements to prevent drift
                 this.mouseMovementX = 0;
@@ -103,7 +103,7 @@ export class InputController {
             this.lastTouchX = touchX;
             this.lastTouchY = touchY;
           }
-        });
+        }, { passive: false });
         
         gameContainer.addEventListener('touchend', () => {
           // Reset movement immediately to stop any continued rotation
