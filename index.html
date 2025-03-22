@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/zombie-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Zombie Shooter</title>
+    <script>
+      // Add a global event listener for clicks on the restart button
+      window.addEventListener('DOMContentLoaded', function() {
+        const restartBtn = document.getElementById('restart-game');
+        if (restartBtn) {
+          restartBtn.addEventListener('click', function() {
+            console.log("RESTART BUTTON CLICKED - DIRECT EVENT HANDLER");
+            // Force focus on the game container to help pointer lock
+            document.getElementById('game-container').focus();
+          });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="game-container" tabindex="0">
+      <div id="ui-overlay">
+        <div id="health-bar">
+          <div id="health-fill"></div>
+          <div id="health-text">100/100</div>
+        </div>
+        <div id="wave-indicator">Wave: 1</div>
+        <div id="crosshair">+</div>
+        <div id="blood-spatter" class="blood-spatter"></div>
+      </div>
+      <div id="mobile-controls">
+        <div id="joystick-area"></div>
+        <div id="action-buttons">
+          <button id="shoot-btn">Shoot</button>
+          <button id="reload-btn">Reload</button>
+          <button id="weapon-switch-btn">Switch</button>
+        </div>
+      </div>
+      <div id="game-over" class="hidden">
+        <h2>Game Over</h2>
+        <div id="final-score"></div>
+        <div id="leaderboard"></div>
+        <div id="username-form">
+          <input type="text" id="username-input" placeholder="Enter your username" maxlength="15">
+          <button id="submit-score">Submit Score</button>
+        </div>
+        <button id="restart-game" onclick="window.gameInstance.restart()">Play Again</button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
