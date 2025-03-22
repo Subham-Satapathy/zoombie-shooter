@@ -39,6 +39,14 @@
           <button id="shoot-btn">Shoot</button>
         </div>
       </div>
+      <div id="start-screen">
+        <h1>Zombie Shooter</h1>
+        <p>Survive against hordes of zombies. How long will you last?</p>
+        <div class="start-buttons">
+          <button id="start-button">Start Game</button>
+          <button id="view-leaderboard">View Leaderboard</button>
+        </div>
+      </div>
       <div id="game-over" class="hidden">
         <h2>Game Over</h2>
         <div id="final-score"></div>
@@ -48,6 +56,14 @@
           <button id="submit-score">Submit Score</button>
         </div>
         <button id="restart-game" onclick="window.gameInstance.restart()">Play Again</button>
+      </div>
+      
+      <div id="leaderboard-popup" class="hidden">
+        <div class="popup-content">
+          <h2>Top Scores</h2>
+          <div id="popup-leaderboard"></div>
+          <button id="close-leaderboard">Close</button>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -176,12 +176,6 @@ export class InputController {
                                   (element as any).mozRequestPointerLock || 
                                   (element as any).webkitRequestPointerLock;
       
-      // Create a UI element that shows instructions
-      this.createPointerLockUI(element);
-      
-      // Request pointer lock only on click to the instructional UI
-      // We'll add this event listener to a dedicated UI element instead
-      
       // Pointer lock change event
       document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this), false);
       document.addEventListener('mozpointerlockchange', this.onPointerLockChange.bind(this), false);
@@ -192,43 +186,6 @@ export class InputController {
       document.addEventListener('mozpointerlockerror', this.onPointerLockError.bind(this), false);
       document.addEventListener('webkitpointerlockerror', this.onPointerLockError.bind(this), false);
     }
-  }
-  
-  /**
-   * Create a UI element for pointer lock instructions
-   */
-  createPointerLockUI(element: HTMLElement): void {
-    const blocker = document.createElement('div');
-    blocker.id = 'pointer-lock-blocker';
-    blocker.style.position = 'absolute';
-    blocker.style.width = '100%';
-    blocker.style.height = '100%';
-    blocker.style.top = '0';
-    blocker.style.left = '0';
-    blocker.style.display = 'flex';
-    blocker.style.justifyContent = 'center';
-    blocker.style.alignItems = 'center';
-    blocker.style.background = 'rgba(0, 0, 0, 0.8)';
-    blocker.style.zIndex = '1000';
-    
-    const instructions = document.createElement('div');
-    instructions.style.color = '#ffffff';
-    instructions.style.fontSize = '24px';
-    instructions.style.textAlign = 'center';
-    instructions.style.cursor = 'pointer';
-    instructions.style.padding = '20px';
-    instructions.style.background = 'rgba(40, 40, 40, 0.8)';
-    instructions.style.borderRadius = '10px';
-    instructions.innerHTML = 'CLICK HERE TO START';
-    
-    blocker.appendChild(instructions);
-    document.getElementById('game-container')?.appendChild(blocker);
-    
-    // Request pointer lock when instructions are clicked
-    instructions.addEventListener('click', () => {
-      blocker.style.display = 'none';
-      element.requestPointerLock();
-    });
   }
   
   /**

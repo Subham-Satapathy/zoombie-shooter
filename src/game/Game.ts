@@ -93,10 +93,7 @@ export class Game {
       this.setupMobileControls();
     }
     
-    // Start game
-    this.start();
-    
-    // Start animation loop
+    // Start animation loop (but don't start the game yet)
     this.animate();
   }
   
@@ -461,7 +458,16 @@ export class Game {
    */
   async fetchLeaderboard(): Promise<void> {
     const topScores = await this.dbService.getTopScores();
+    this.updateLeaderboardUI(topScores);
     
+    // Subscribe to real-time updates for the game over leaderboard
+    this.dbService.subscribeToLeaderboard(this.updateLeaderboardUI.bind(this));
+  }
+  
+  /**
+   * Update the leaderboard UI with the given scores
+   */
+  private updateLeaderboardUI(topScores: ScoreEntry[]): void {
     // Update leaderboard UI
     const leaderboardElement = document.getElementById('leaderboard');
     if (leaderboardElement) {
@@ -486,8 +492,19 @@ export class Game {
       
       // Add rows
       const tbody = document.createElement('tbody');
+      
+      // Get username from input
+      const usernameInput = document.getElementById('username-input') as HTMLInputElement;
+      const currentUsername = usernameInput?.value || '';
+      
       topScores.forEach((entry, index) => {
         const row = document.createElement('tr');
+        
+        // Highlight current user's score if username matches
+        if (currentUsername && currentUsername.trim() === entry.username) {
+          row.classList.add('current-user');
+        }
+        
         row.innerHTML = `
           <td style="text-align: left;">${index + 1}</td>
           <td style="text-align: left;">${entry.username}</td>
@@ -511,27 +528,62 @@ export class Game {
       return;
     }
     
+    // Disable submit button during submission
+    const submitBtn = document.getElementById('submit-score');
+    if (submitBtn) {
+      submitBtn.setAttribute('disabled', 'disabled');
+      submitBtn.textContent = 'Submitting...';
+    }
+    
     const scoreEntry: ScoreEntry = {
       username,
       score: this.score,
       wave: this.zombieManager.currentWave
     };
     
-    // Submit score to database
-    const success = await this.dbService.submitScore(scoreEntry);
+    console.log('Submitting score for:', username, 'Score:', this.score, 'Wave:', this.zombieManager.currentWave);
     
-    if (success) {
-      // Disable submit button
-      const submitBtn = document.getElementById('submit-score');
-      if (submitBtn) {
-        submitBtn.setAttribute('disabled', 'disabled');
-        submitBtn.textContent = 'Submitted';
+    try {
+      // First, check if this user has a higher score already
+      const existingScores = await this.dbService.getTopScores(50);
+      const existingScore = existingScores.find(s => s.username === username);
+      
+      if (existingScore && existingScore.score > this.score) {
+        // Show message but don't block submission - the server will handle this too
+        alert(`You already have a higher score of ${existingScore.score} (Wave ${existingScore.wave}). Your current score is ${this.score} (Wave ${this.zombieManager.currentWave}).`);
       }
       
-      // Refresh leaderboard
-      this.fetchLeaderboard();
-    } else {
-      alert('Failed to submit score. Please try again.');
+      // Submit score to database
+      const success = await this.dbService.submitScore(scoreEntry);
+      
+      if (success) {
+        // Disable submit button
+        if (submitBtn) {
+          submitBtn.setAttribute('disabled', 'disabled');
+          submitBtn.textContent = 'Submitted';
+        }
+        
+        // Refresh leaderboard
+        this.fetchLeaderboard();
+      } else {
+        // Show detailed error message
+        alert('Failed to submit score. Please check your internet connection and try again. If the problem persists, verify that the leaderboard service is properly configured.');
+        
+        // Reset submit button
+        if (submitBtn) {
+          submitBtn.removeAttribute('disabled');
+          submitBtn.textContent = 'Try Again';
+        }
+      }
+    } catch (error) {
+      console.error('Exception when handling score submission:', error);
+      alert('An unexpected error occurred. Please try again.');
+      
+      // Reset submit button
+      if (submitBtn) {
+        submitBtn.removeAttribute('disabled');
+        submitBtn.textContent = 'Try Again';
+      }
     }
   }
   
@@ -539,7 +591,7 @@ export class Game {
    * Restart the game
    */
   restart(): void {
-    console.log("Restart game called");
+    console.log("Game restart called");
     
     // Reset game components
     this.resetGame();
@@ -548,6 +600,12 @@ export class Game {
     const gameOverUI = document.getElementById('game-over');
     if (gameOverUI) {
       gameOverUI.classList.add('hidden');
+    }
+    
+    // Ensure start screen stays hidden
+    const startScreen = document.getElementById('start-screen');
+    if (startScreen) {
+      startScreen.classList.add('hidden');
     }
     
     // Reset username input

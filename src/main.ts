@@ -10,6 +10,12 @@ declare global {
 
 // Initialize the game once the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  // Remove any existing pointer-lock blocker elements from previous versions
+  const existingBlocker = document.getElementById('pointer-lock-blocker');
+  if (existingBlocker) {
+    existingBlocker.remove();
+  }
+  
   const game = new Game()
   // Make game instance globally accessible
   window.gameInstance = game
@@ -19,6 +25,109 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle window resize
   window.addEventListener('resize', () => {
     game.onWindowResize()
+  })
+  
+  // Setup start button
+  const startButton = document.getElementById('start-button') as HTMLElement
+  startButton?.addEventListener('click', () => {
+    // Hide the start screen
+    const startScreen = document.getElementById('start-screen') as HTMLElement
+    startScreen?.classList.add('hidden')
+    
+    // Start the game
+    game.start()
+    
+    // Focus on game container for pointer lock
+    const gameContainer = document.getElementById('game-container') as HTMLElement
+    gameContainer?.focus()
+    
+    // If on desktop, request pointer lock
+    if (!game.inputController.isMobile) {
+      game.renderer.domElement.requestPointerLock()
+    }
+  })
+  
+  // Setup view leaderboard button
+  const viewLeaderboardBtn = document.getElementById('view-leaderboard') as HTMLElement
+  let leaderboardUpdateHandler: ((scores: any) => void) | null = null;
+  
+  viewLeaderboardBtn?.addEventListener('click', async () => {
+    // Show leaderboard popup
+    const leaderboardPopup = document.getElementById('leaderboard-popup') as HTMLElement
+    if (leaderboardPopup) {
+      leaderboardPopup.classList.remove('hidden')
+      
+      // Load top scores
+      const popupLeaderboard = document.getElementById('popup-leaderboard') as HTMLElement
+      if (popupLeaderboard) {
+        // Clear previous entries
+        popupLeaderboard.innerHTML = '<div class="loading">Loading scores...</div>'
+        
+        // Create handler function for updates
+        leaderboardUpdateHandler = (scores: any[]) => {
+          if (scores.length === 0) {
+            popupLeaderboard.innerHTML = '<p class="no-scores">No scores yet. Be the first to play!</p>'
+            return
+          }
+          
+          // Create table
+          const table = document.createElement('table')
+          
+          // Add header
+          const thead = document.createElement('thead')
+          thead.innerHTML = `
+            <tr>
+              <th style="text-align: left;">Rank</th>
+              <th style="text-align: left;">Username</th>
+              <th style="text-align: right;">Score</th>
+              <th style="text-align: right;">Wave</th>
+            </tr>
+          `
+          table.appendChild(thead)
+          
+          // Add rows
+          const tbody = document.createElement('tbody')
+          scores.forEach((entry, index) => {
+            const row = document.createElement('tr')
+            row.innerHTML = `
+              <td style="text-align: left;">${index + 1}</td>
+              <td style="text-align: left;">${entry.username}</td>
+              <td style="text-align: right;">${entry.score}</td>
+              <td style="text-align: right;">${entry.wave}</td>
+            `
+            tbody.appendChild(row)
+          })
+          
+          table.appendChild(tbody)
+          popupLeaderboard.innerHTML = ''
+          popupLeaderboard.appendChild(table)
+        }
+        
+        // Fetch initial scores
+        const topScores = await game.dbService.getTopScores(10)
+        
+        // Update UI with initial scores
+        leaderboardUpdateHandler(topScores)
+        
+        // Subscribe to real-time updates
+        game.dbService.subscribeToLeaderboard(leaderboardUpdateHandler)
+      }
+    }
+  })
+  
+  // Setup close leaderboard button
+  const closeLeaderboardBtn = document.getElementById('close-leaderboard') as HTMLElement
+  closeLeaderboardBtn?.addEventListener('click', () => {
+    const leaderboardPopup = document.getElementById('leaderboard-popup') as HTMLElement
+    if (leaderboardPopup) {
+      leaderboardPopup.classList.add('hidden')
+      
+      // Unsubscribe from real-time updates when closing
+      if (leaderboardUpdateHandler) {
+        game.dbService.unsubscribeFromLeaderboard(leaderboardUpdateHandler)
+        leaderboardUpdateHandler = null
+      }
+    }
   })
   
   // Setup button event listeners
@@ -79,7 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // And only if pointer lock isn't already active
     if (game.isRunning && !game.inputController.isMobile && 
         !document.pointerLockElement && 
-        document.getElementById('game-over')?.classList.contains('hidden')) {
+        document.getElementById('game-over')?.classList.contains('hidden') &&
+        document.getElementById('start-screen')?.classList.contains('hidden')) {
       game.renderer.domElement.requestPointerLock()
     }
   })
