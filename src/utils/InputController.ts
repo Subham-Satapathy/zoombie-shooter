@@ -16,6 +16,8 @@ export class InputController {
   private initialY: number = 0;
   mouseMovementX: number = 0;
   mouseMovementY: number = 0;
+  private lastTouchX: number = 0;
+  private lastTouchY: number = 0;
   
   constructor() {
     this.keys = {};
@@ -61,149 +63,46 @@ export class InputController {
         }
       });
     } else {
-      // Mobile joystick - ensure the element exists
-      const joystickArea = document.getElementById('joystick-area');
+      // Mobile touch-based scroll controls
+      const gameContainer = document.getElementById('game-container');
       
-      if (joystickArea) {
-        // Create virtual joystick UI
-        this.createVirtualJoystick(joystickArea);
-        
-        joystickArea.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          this.handleJoystickStart(e.touches[0].clientX, e.touches[0].clientY);
+      if (gameContainer) {
+        gameContainer.addEventListener('touchstart', (e) => {
+          // Only capture touchstart on the left side of the screen
+          if (e.touches[0].clientX < window.innerWidth / 2) {
+            e.preventDefault();
+            this.lastTouchX = e.touches[0].clientX;
+            this.lastTouchY = e.touches[0].clientY;
+          }
         });
         
-        joystickArea.addEventListener('touchmove', (e) => {
-          e.preventDefault();
-          this.handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+        gameContainer.addEventListener('touchmove', (e) => {
+          // Only handle touchmove on the left side of the screen
+          if (e.touches[0].clientX < window.innerWidth / 2) {
+            e.preventDefault();
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            
+            // Calculate delta movement
+            const deltaX = touchX - this.lastTouchX;
+            const deltaY = touchY - this.lastTouchY;
+            
+            // Update rotation values based on touch movement
+            this.mouseMovementX = deltaX * 0.5; // Adjust sensitivity
+            this.mouseMovementY = deltaY * 0.5;
+            
+            // Store current position for next move
+            this.lastTouchX = touchX;
+            this.lastTouchY = touchY;
+          }
         });
         
-        joystickArea.addEventListener('touchend', () => {
-          this.joystickActive = false;
-          this.joystickPosition.set(0, 0);
-          this.updateJoystickVisuals();
-        });
-        
-        joystickArea.addEventListener('touchcancel', () => {
-          this.joystickActive = false;
-          this.joystickPosition.set(0, 0);
-          this.updateJoystickVisuals();
+        gameContainer.addEventListener('touchend', (e) => {
+          // Reset movement
+          this.mouseMovementX = 0;
+          this.mouseMovementY = 0;
         });
       }
-    }
-  }
-  
-  /**
-   * Create virtual joystick UI elements
-   */
-  createVirtualJoystick(container: HTMLElement): void {
-    // Create joystick base (fixed position on left side)
-    const joystickBase = document.createElement('div');
-    joystickBase.id = 'joystick-base';
-    joystickBase.style.position = 'absolute';
-    joystickBase.style.width = '120px';
-    joystickBase.style.height = '120px';
-    joystickBase.style.borderRadius = '60px';
-    joystickBase.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-    joystickBase.style.border = '2px solid rgba(255, 255, 255, 0.4)';
-    joystickBase.style.bottom = '100px';
-    joystickBase.style.left = '100px'; 
-    joystickBase.style.transform = 'translate(-50%, -50%)';
-    
-    // Create joystick handle
-    const joystickHandle = document.createElement('div');
-    joystickHandle.id = 'joystick-handle';
-    joystickHandle.style.position = 'absolute';
-    joystickHandle.style.width = '60px';
-    joystickHandle.style.height = '60px';
-    joystickHandle.style.borderRadius = '30px';
-    joystickHandle.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    joystickHandle.style.top = '50%';
-    joystickHandle.style.left = '50%';
-    joystickHandle.style.transform = 'translate(-50%, -50%)';
-    joystickHandle.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-    
-    // Add label to indicate this is for aiming
-    const joystickLabel = document.createElement('div');
-    joystickLabel.textContent = 'AIM';
-    joystickLabel.style.position = 'absolute';
-    joystickLabel.style.top = '-30px';
-    joystickLabel.style.left = '50%';
-    joystickLabel.style.transform = 'translateX(-50%)';
-    joystickLabel.style.color = 'white';
-    joystickLabel.style.fontSize = '16px';
-    joystickLabel.style.fontWeight = 'bold';
-    joystickLabel.style.textShadow = '0 0 5px black';
-    
-    // Add to DOM
-    joystickBase.appendChild(joystickHandle);
-    joystickBase.appendChild(joystickLabel);
-    container.appendChild(joystickBase);
-  }
-  
-  /**
-   * Handle joystick touch start
-   */
-  handleJoystickStart(x: number, y: number): void {
-    this.joystickActive = true;
-    // Get position of joystick base for reference
-    const joystickBase = document.getElementById('joystick-base');
-    if (joystickBase) {
-      const rect = joystickBase.getBoundingClientRect();
-      // Use center of the joystick as the initial position
-      this.initialX = rect.left + rect.width / 2;
-      this.initialY = rect.top + rect.height / 2;
-    } else {
-      // Fallback if element not found
-      this.initialX = 100;
-      this.initialY = window.innerHeight - 100;
-    }
-    
-    // Calculate initial offset
-    this.handleJoystickMove(x, y);
-  }
-  
-  /**
-   * Handle joystick touch move
-   */
-  handleJoystickMove(x: number, y: number): void {
-    if (this.joystickActive) {
-      // Calculate joystick offset from center (normalized between -1 and 1)
-      const offsetX = (x - this.initialX) / 50;
-      const offsetY = (y - this.initialY) / 50;
-      
-      // Limit the joystick radius to 1
-      const magnitude = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-      if (magnitude > 1) {
-        this.joystickPosition.x = offsetX / magnitude;
-        this.joystickPosition.y = offsetY / magnitude;
-      } else {
-        this.joystickPosition.x = offsetX;
-        this.joystickPosition.y = offsetY;
-      }
-      
-      // Update aiming input - store as mouse movement values
-      this.mouseMovementX = this.joystickPosition.x * 2; // Scale for sensitivity
-      this.mouseMovementY = this.joystickPosition.y * 2;
-      
-      this.updateJoystickVisuals();
-    }
-  }
-  
-  /**
-   * Update joystick visuals to match its position
-   */
-  updateJoystickVisuals(): void {
-    const handle = document.getElementById('joystick-handle');
-    if (handle && this.joystickActive) {
-      const maxDistance = 30; // Max distance in pixels for handle movement
-      const moveX = this.joystickPosition.x * maxDistance;
-      const moveY = this.joystickPosition.y * maxDistance;
-      
-      handle.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
-    } else if (handle) {
-      // Reset to center
-      handle.style.transform = 'translate(-50%, -50%)';
     }
   }
   
@@ -222,7 +121,7 @@ export class InputController {
     
     // On mobile, we just use simple automatic movement forward
     if (this.isMobile) {
-      direction.x = 0;  // No left-right movement on mobile (joystick is for aiming now)
+      direction.x = 0;  // No left-right movement on mobile
       direction.z = -1; // Always move forward slowly
       return direction;
     }

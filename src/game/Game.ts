@@ -631,7 +631,7 @@ export class Game {
       e.preventDefault();
       
       // Check if the touch is on the right side of the screen
-      // This avoids interfering with the joystick controls
+      // This avoids interfering with the scrolling controls
       const touch = e.touches[0];
       if (touch.clientX > window.innerWidth / 2) {
         this.startShooting();
@@ -647,6 +647,15 @@ export class Game {
     const mobileControls = document.getElementById('mobile-controls');
     if (mobileControls) {
       mobileControls.style.display = 'block';
+      
+      // Update mobile instructions text
+      const mobileInstructions = document.getElementById('mobile-instructions');
+      if (mobileInstructions) {
+        mobileInstructions.innerHTML = `
+          <p>Left: Scroll to aim</p>
+          <p>Right: Tap to shoot</p>
+        `;
+      }
     }
   }
 } 

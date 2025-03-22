@@ -146,33 +146,23 @@ body {
 #mobile-controls {
   position: absolute;
   bottom: 0;
-  width: 100%;
-  height: 30%;
-  display: none;
-  z-index: 20;
-}
-
-#joystick-area {
-  position: absolute;
   left: 0;
-  bottom: 0;
-  width: 50%;
+  width: 100%;
   height: 100%;
-  touch-action: none;
+  display: none;
+  pointer-events: none;
 }
 
 #action-buttons {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 50%;
-  height: 100%;
+  right: 20px;
+  bottom: 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 15px;
-  padding-right: 20px;
+  pointer-events: auto;
 }
 
 #action-buttons button {
@@ -194,13 +184,6 @@ body {
   width: 100px !important;
   height: 100px !important;
   font-size: 20px !important;
-  animation: pulse-button 2s infinite;
-}
-
-@keyframes pulse-button {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
 }
 
 #game-over {
@@ -365,6 +348,7 @@ body {
   font-size: 14px;
   display: none;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 #mobile-instructions p {
