@@ -88,10 +88,10 @@ export class InputController {
               const deltaY = touchY - this.lastTouchY;
               
               // Only apply movement if there's a significant change to avoid drift
-              if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+              if (Math.abs(deltaX) > 0.2 || Math.abs(deltaY) > 0.2) {
                 // Update rotation values based on touch movement - with improved sensitivity
-                this.mouseMovementX = deltaX * 0.5; // Increase sensitivity
-                this.mouseMovementY = deltaY * 0.5; // Increase sensitivity
+                this.mouseMovementX = deltaX * 1.5; // Increased sensitivity from 0.5 to 1.5
+                this.mouseMovementY = deltaY * 1.5; // Increased sensitivity from 0.5 to 1.5
               } else {
                 // Reset for small movements to prevent drift
                 this.mouseMovementX = 0;

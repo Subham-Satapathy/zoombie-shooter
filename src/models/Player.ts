@@ -43,6 +43,10 @@ export class Player {
   // Movement parameters
   moveSpeed: number;
   
+  // Inertia for smoother camera movement
+  private rotationVelocity: THREE.Vector2 = new THREE.Vector2(0, 0);
+  private rotationDamping: number = 0.8; // Controls how quickly rotation slows down
+  
   // Add new property for invincibility after taking damage
   private lastDamageTime: number = 0;
   private damageInvincibilityTime: number = 1000; // 1 second of invincibility after taking damage
@@ -131,24 +135,43 @@ export class Player {
     if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
       // Horizontal rotation (around Y axis)
       if (this.inputController.mouseMovementX !== 0) {
-        // Reverse X movement for more natural camera control 
-        this.rotation.y -= this.inputController.mouseMovementX * 0.002;
+        // Apply rotation to velocity for inertia, not directly to rotation
+        this.rotationVelocity.x -= this.inputController.mouseMovementX * 0.002;
         rotationChanged = true;
       }
       
       // Vertical rotation (around X axis)
       if (this.inputController.mouseMovementY !== 0) {
-        // Calculate rotation change
-        this.rotation.x += -this.inputController.mouseMovementY * 0.002;
-        
-        // Clamp vertical rotation to allow looking down to 45 degrees (-PI/4)
-        this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
+        // Apply rotation to velocity for inertia, not directly to rotation
+        this.rotationVelocity.y -= this.inputController.mouseMovementY * 0.002;
         rotationChanged = true;
       }
       
       // Reset movements immediately after applying to prevent continuous rotation
       this.inputController.mouseMovementX = 0;
       this.inputController.mouseMovementY = 0;
+    }
+    
+    // Apply rotation velocity with inertia
+    if (this.rotationVelocity.x !== 0 || this.rotationVelocity.y !== 0) {
+      // Apply horizontal rotation with inertia
+      this.rotation.y += this.rotationVelocity.x;
+      
+      // Apply vertical rotation with inertia
+      this.rotation.x += this.rotationVelocity.y;
+      
+      // Clamp vertical rotation to allow looking down to 45 degrees (-PI/4)
+      this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
+      
+      // Apply damping to slow down rotation over time
+      this.rotationVelocity.x *= this.rotationDamping;
+      this.rotationVelocity.y *= this.rotationDamping;
+      
+      // Stop rotation completely if it's very small
+      if (Math.abs(this.rotationVelocity.x) < 0.0001) this.rotationVelocity.x = 0;
+      if (Math.abs(this.rotationVelocity.y) < 0.0001) this.rotationVelocity.y = 0;
+      
+      rotationChanged = true;
     }
     
     // Special handling for non-mobile input
@@ -455,14 +478,23 @@ export class Player {
     
     // Only update if there's actual movement
     if (deltaX !== 0 || deltaY !== 0) {
+      // Apply to rotation velocity instead of directly to rotation
       // Horizontal rotation (around Y axis) - use deltaX
-      this.rotation.y -= deltaX;
+      this.rotationVelocity.x -= deltaX;
       
       // Vertical rotation (around X axis) - use deltaY
-      this.rotation.x += -deltaY;
+      this.rotationVelocity.y += -deltaY;
+      
+      // Apply rotation with inertia
+      this.rotation.y += this.rotationVelocity.x;
+      this.rotation.x += this.rotationVelocity.y;
       
       // Clamp vertical rotation to prevent looking too far up or down
       this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
+      
+      // Apply damping for smooth deceleration
+      this.rotationVelocity.x *= this.rotationDamping;
+      this.rotationVelocity.y *= this.rotationDamping;
       
       // Update camera and weapon position
       this.updateCamera();

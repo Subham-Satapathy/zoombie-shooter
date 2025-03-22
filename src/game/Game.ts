@@ -286,8 +286,8 @@ export class Game {
         if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
           // Update player rotation based on touch movement
           this.player.updateRotation(
-            this.inputController.mouseMovementX * 0.02, // Further reduce sensitivity
-            this.inputController.mouseMovementY * 0.02  // Further reduce sensitivity
+            this.inputController.mouseMovementX * 0.05, // Increased sensitivity from 0.02 to 0.05
+            this.inputController.mouseMovementY * 0.05  // Increased sensitivity from 0.02 to 0.05
           );
           
           // Immediately reset the movement values after applying to prevent drift
