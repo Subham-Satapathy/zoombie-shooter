@@ -289,8 +289,8 @@ export class Game {
         if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
           // Update player rotation based on touch movement
           this.player.updateRotation(
-            this.inputController.mouseMovementX * 0.1,
-            this.inputController.mouseMovementY * 0.1
+            this.inputController.mouseMovementX * 0.05,
+            this.inputController.mouseMovementY * 0.05
           );
         }
         

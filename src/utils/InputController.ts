@@ -86,8 +86,8 @@ export class InputController {
             const deltaY = touchY - this.lastTouchY;
             
             // Update rotation values based on touch movement
-            this.mouseMovementX = deltaX * 0.5; // Adjust sensitivity
-            this.mouseMovementY = deltaY * 0.5;
+            this.mouseMovementX = deltaX * 0.2; // Reduce sensitivity
+            this.mouseMovementY = deltaY * 0.2; // Reduce sensitivity
             
             // Store current position for next move
             this.lastTouchX = touchX;
