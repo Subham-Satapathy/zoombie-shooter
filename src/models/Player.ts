@@ -214,7 +214,7 @@ export class Player {
     }
     
     // Cap damage to prevent instant deaths
-    const cappedDamage = Math.min(amount, 20);
+    const cappedDamage = Math.min(amount, 30); // Increased from 20 to allow for higher swarm damage
     
     // Log damage details
     console.log(`⚡ Player taking damage: ${cappedDamage}, current health: ${this.health}`);
@@ -225,22 +225,29 @@ export class Player {
     this.health -= cappedDamage;
     console.log(`🩸 Player health reduced to: ${this.health}`);
     
+    // Check if player is dead before updating UI and showing effects
+    if (this.health <= 0) {
+      this.health = 0;
+      console.log(`☠️ Player died!`);
+      
+      // Update health UI
+      this.updateHealthUI();
+      
+      // Die
+      this.die();
+      return;
+    }
+    
     // Update health UI
     this.updateHealthUI();
     console.log(`🔄 Health UI updated, percentage: ${(this.health / this.maxHealth * 100).toFixed(1)}%`);
     
-    // Trigger damage indicator
-    this.flashDamageIndicator();
+    // Trigger damage indicator - more intense for higher damage
+    this.flashDamageIndicator(cappedDamage);
     
-    // Show blood spatter for heavier damage
+    // Show blood spatter based on damage threshold
     if (cappedDamage > 15) {
-      this.showBloodSpatter();
-    }
-    
-    if (this.health <= 0) {
-      this.health = 0;
-      console.log(`☠️ Player died!`);
-      this.die();
+      this.showBloodSpatter(cappedDamage > 25 ? 'heavy' : 'normal');
     }
   }
   
@@ -282,51 +289,57 @@ export class Player {
   /**
    * Flash damage indicator when taking damage
    */
-  flashDamageIndicator(): void {
+  flashDamageIndicator(damageAmount: number = 10): void {
     const damageFlash = document.createElement('div');
     damageFlash.className = 'damage-flash';
     document.getElementById('game-container')?.appendChild(damageFlash);
     
-    // Make flash intensity related to current health
-    const intensity = Math.max(0.5, 1 - (this.health / this.maxHealth));
+    // Make flash intensity related to current health AND damage amount
+    const healthFactor = Math.max(0.5, 1 - (this.health / this.maxHealth));
+    const damageFactor = Math.min(1.0, damageAmount / 30); // Normalize damage up to max cap
+    
+    // Combined effect: higher damage or lower health = more intense effect
+    const intensity = Math.max(healthFactor, damageFactor);
     damageFlash.style.setProperty('--flash-intensity', intensity.toString());
     
     // Add screen shake effect for immersion
     const gameContainer = document.getElementById('game-container');
     if (gameContainer) {
-      gameContainer.style.animation = 'none';
-      setTimeout(() => {
-        gameContainer.style.animation = 'shake 0.2s cubic-bezier(.36,.07,.19,.97) both';
-      }, 10);
+      // Stronger shake for higher damage
+      const shakeIntensity = 0.3 + (damageAmount / 30) * 0.5; // Between 0.3 and 0.8
+      
+      // Add shake effect
+      gameContainer.style.animation = 'none'; // Reset animation
+      void gameContainer.offsetWidth; // Trigger reflow
+      gameContainer.style.animation = `shake ${shakeIntensity}s cubic-bezier(.36,.07,.19,.97) both`;
     }
     
-    // Remove after animation completes
+    // Remove flash after animation completes
     setTimeout(() => {
-      damageFlash.remove();
+      if (damageFlash.parentNode) {
+        damageFlash.parentNode.removeChild(damageFlash);
+      }
     }, 500);
   }
   
   /**
    * Show blood spatter effect for heavy damage
    */
-  showBloodSpatter(): void {
+  showBloodSpatter(intensity: string = 'normal'): void {
     const bloodSpatter = document.getElementById('blood-spatter');
     if (bloodSpatter) {
-      // Clear any existing animation
-      bloodSpatter.classList.remove('visible');
+      // Reset any existing animation
+      bloodSpatter.style.animation = 'none';
+      void bloodSpatter.offsetWidth; // Trigger reflow
       
-      // Position blood randomly on screen
-      const posX = 30 + Math.random() * 40; // 30-70% of screen width
-      const posY = 30 + Math.random() * 40; // 30-70% of screen height
-      
-      bloodSpatter.style.backgroundPosition = `${posX}% ${posY}%`;
-      bloodSpatter.style.backgroundSize = `${50 + Math.random() * 50}px`; // Random size
-      
-      // Force reflow
-      void bloodSpatter.offsetWidth;
-      
-      // Show blood
-      bloodSpatter.classList.add('visible');
+      // Set intensity based on parameter
+      if (intensity === 'heavy') {
+        bloodSpatter.style.opacity = '0.8';
+        bloodSpatter.style.animation = 'blood-fade 2.5s forwards';
+      } else {
+        bloodSpatter.style.opacity = '0.5';
+        bloodSpatter.style.animation = 'blood-fade 1.5s forwards';
+      }
     }
   }
   

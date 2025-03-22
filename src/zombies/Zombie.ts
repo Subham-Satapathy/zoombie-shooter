@@ -1161,10 +1161,32 @@ export class Zombie {
   attackPlayer(): void {
     if (this.isAttacking) return; // Prevent multiple attacks in progress
     
+    // Get zombie manager to check for nearby zombies
+    const zombieManager = this.scene.getObjectByName('zombieManager') as any;
+    
+    // Count how many zombies are near the player (within 5 units)
+    let nearbyZombiesCount = 0;
+    if (zombieManager && zombieManager.zombies) {
+      nearbyZombiesCount = zombieManager.zombies.filter((z: Zombie) => {
+        if (z.isDead) return false;
+        const distToPlayer = z.position.distanceTo(this.player.position);
+        return distToPlayer < 5; // 5 units is considered "nearby"
+      }).length;
+    }
+    
+    // Base damage from zombie properties
+    let adjustedDamage = Math.min(this.properties.damage, 10); // Cap base damage to prevent one-hit kills
+    
+    // Increase damage based on how many zombies are nearby
+    // Each nearby zombie increases damage by 10% up to a maximum of 3x damage
+    const multiplier = Math.min(3.0, 1 + (nearbyZombiesCount * 0.1));
+    adjustedDamage = Math.ceil(adjustedDamage * multiplier);
+    
+    console.log(`💥 Attacked player with ${nearbyZombiesCount} nearby zombies for ${adjustedDamage} damage (x${multiplier.toFixed(1)} multiplier)`);
+    
     // Apply damage to player
-    const adjustedDamage = Math.min(this.properties.damage, 10); // Cap damage to prevent one-hit kills
     this.player.takeDamage(adjustedDamage);
-    console.log(`💥 Attacked player for ${adjustedDamage} damage. Player health now: ${this.player.health}`);
+    console.log(`Player health now: ${this.player.health}`);
     
     // Reset cooldown
     this.lastAttackTime = Date.now();
@@ -1187,13 +1209,15 @@ export class Zombie {
     
     this.health -= amount;
     
-    // Show damage hit effect
-    this.showDamageEffect();
-    
+    // Ensure health doesn't go below 0
     if (this.health <= 0) {
+      this.health = 0;
       this.die();
       return true;
     }
+    
+    // Show damage hit effect
+    this.showDamageEffect();
     
     return false;
   }

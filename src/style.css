@@ -158,6 +158,7 @@ body {
   bottom: 0;
   width: 50%;
   height: 100%;
+  touch-action: none;
 }
 
 #action-buttons {
@@ -170,7 +171,8 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
+  padding-right: 20px;
 }
 
 #action-buttons button {
@@ -178,10 +180,17 @@ body {
   color: white;
   border: 2px solid var(--primary-color);
   border-radius: 50%;
-  width: 70px;
-  height: 70px;
-  font-size: 14px;
+  width: 80px;
+  height: 80px;
+  font-size: 16px;
   font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  touch-action: manipulation;
+}
+
+#shoot-btn {
+  background-color: rgba(231, 111, 81, 0.6) !important;
+  border: 2px solid var(--secondary-color) !important;
 }
 
 #game-over {
@@ -287,31 +296,31 @@ body {
   z-index: 20; /* Ensure it appears above other UI elements */
 }
 
-/* Blood spatter effect for severe damage */
-.blood-spatter {
+/* Blood spatter effect for heavy damage */
+#blood-spatter {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  z-index: 19;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="rgba(180,0,0,0.7)"/></svg>');
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
+  background-image: url('/assets/textures/blood_spatter.png');
+  background-size: cover;
+  background-position: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.blood-spatter.visible {
-  opacity: 0.7;
-  animation: fade-blood 3s forwards;
-}
-
-@keyframes fade-blood {
-  0% { opacity: 0.7; }
-  70% { opacity: 0.7; }
+/* Blood fade animation */
+@keyframes blood-fade {
+  0% { opacity: 0; }
+  10% { opacity: var(--initial-opacity, 0.5); }
   100% { opacity: 0; }
+}
+
+/* For backwards compatibility with existing code */
+#blood-spatter.visible {
+  animation: blood-fade 1.5s forwards;
 }
 
 /* Screen shake animation for damage */
@@ -333,13 +342,46 @@ body {
   }
 }
 
+#mobile-instructions {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  display: none;
+  white-space: nowrap;
+}
+
+#mobile-instructions p {
+  margin: 5px 0;
+}
+
 /* Mobile device detection */
 @media (max-width: 768px) {
   #mobile-controls {
     display: block;
   }
   
+  #mobile-instructions {
+    display: block;
+  }
+  
   #wave-indicator {
     font-size: 16px;
+  }
+  
+  #health-bar {
+    width: 200px;
+    top: 10px;
+  }
+  
+  #action-buttons button:active {
+    transform: scale(0.95);
+    opacity: 0.8;
   }
 }

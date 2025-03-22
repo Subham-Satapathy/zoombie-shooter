@@ -32,9 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const reloadBtn = document.getElementById('reload-btn') as HTMLElement
   const weaponSwitchBtn = document.getElementById('weapon-switch-btn') as HTMLElement
   
-  shootBtn?.addEventListener('pointerdown', () => game.startShooting())
-  shootBtn?.addEventListener('pointerup', () => game.stopShooting())
-  shootBtn?.addEventListener('pointerleave', () => game.stopShooting())
+  // Use touchstart/touchend instead of pointerdown/pointerup for better mobile response
+  if (game.inputController.isMobile) {
+    shootBtn?.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+      game.startShooting()
+    })
+    shootBtn?.addEventListener('touchend', (e) => {
+      e.preventDefault()
+      game.stopShooting()
+    })
+  } else {
+    shootBtn?.addEventListener('pointerdown', () => game.startShooting())
+    shootBtn?.addEventListener('pointerup', () => game.stopShooting())
+    shootBtn?.addEventListener('pointerleave', () => game.stopShooting())
+  }
   
   reloadBtn?.addEventListener('click', () => game.reload())
   weaponSwitchBtn?.addEventListener('click', () => game.switchWeapon())

@@ -12,6 +12,10 @@ export class InputController {
   mouseButtons: { left: boolean };
   pointerLockJustInitialized: boolean = false;
   pointerLockEstablished: boolean = false;
+  private initialX: number = 0;
+  private initialY: number = 0;
+  mouseMovementX: number = 0;
+  mouseMovementY: number = 0;
   
   constructor() {
     this.keys = {};
@@ -57,29 +61,71 @@ export class InputController {
         }
       });
     } else {
-      // Mobile joystick
-      const joystickArea = document.getElementById('joystick-area') as HTMLElement;
+      // Mobile joystick - ensure the element exists
+      const joystickArea = document.getElementById('joystick-area');
       
-      joystickArea.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        this.handleJoystickStart(e.touches[0].clientX, e.touches[0].clientY);
-      });
-      
-      joystickArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        this.handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
-      });
-      
-      joystickArea.addEventListener('touchend', () => {
-        this.joystickActive = false;
-        this.joystickPosition.set(0, 0);
-      });
-      
-      joystickArea.addEventListener('touchcancel', () => {
-        this.joystickActive = false;
-        this.joystickPosition.set(0, 0);
-      });
+      if (joystickArea) {
+        // Create virtual joystick UI
+        this.createVirtualJoystick(joystickArea);
+        
+        joystickArea.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          this.handleJoystickStart(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        
+        joystickArea.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          this.handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        
+        joystickArea.addEventListener('touchend', () => {
+          this.joystickActive = false;
+          this.joystickPosition.set(0, 0);
+          this.updateJoystickVisuals();
+        });
+        
+        joystickArea.addEventListener('touchcancel', () => {
+          this.joystickActive = false;
+          this.joystickPosition.set(0, 0);
+          this.updateJoystickVisuals();
+        });
+      }
     }
+  }
+  
+  /**
+   * Create virtual joystick UI elements
+   */
+  createVirtualJoystick(container: HTMLElement): void {
+    // Create joystick base
+    const joystickBase = document.createElement('div');
+    joystickBase.id = 'joystick-base';
+    joystickBase.style.position = 'absolute';
+    joystickBase.style.width = '120px';
+    joystickBase.style.height = '120px';
+    joystickBase.style.borderRadius = '60px';
+    joystickBase.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+    joystickBase.style.border = '2px solid rgba(255, 255, 255, 0.4)';
+    joystickBase.style.bottom = '80px';
+    joystickBase.style.left = '80px';
+    joystickBase.style.transform = 'translate(-50%, -50%)';
+    
+    // Create joystick handle
+    const joystickHandle = document.createElement('div');
+    joystickHandle.id = 'joystick-handle';
+    joystickHandle.style.position = 'absolute';
+    joystickHandle.style.width = '60px';
+    joystickHandle.style.height = '60px';
+    joystickHandle.style.borderRadius = '30px';
+    joystickHandle.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+    joystickHandle.style.top = '50%';
+    joystickHandle.style.left = '50%';
+    joystickHandle.style.transform = 'translate(-50%, -50%)';
+    joystickHandle.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+    
+    // Add to DOM
+    joystickBase.appendChild(joystickHandle);
+    container.appendChild(joystickBase);
   }
   
   /**
@@ -90,6 +136,15 @@ export class InputController {
     // Store the initial touch position as the joystick center
     this.initialX = x;
     this.initialY = y;
+    
+    // Update visual position of joystick base
+    const joystickBase = document.getElementById('joystick-base');
+    if (joystickBase) {
+      joystickBase.style.left = `${x}px`;
+      joystickBase.style.bottom = `${window.innerHeight - y}px`;
+    }
+    
+    this.updateJoystickVisuals();
   }
   
   /**
@@ -98,8 +153,8 @@ export class InputController {
   handleJoystickMove(x: number, y: number): void {
     if (this.joystickActive) {
       // Calculate joystick offset from center (normalized between -1 and 1)
-      const offsetX = (x - this.initialX) / 100;
-      const offsetY = (y - this.initialY) / 100;
+      const offsetX = (x - this.initialX) / 50;
+      const offsetY = (y - this.initialY) / 50;
       
       // Limit the joystick radius to 1
       const magnitude = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
@@ -110,6 +165,25 @@ export class InputController {
         this.joystickPosition.x = offsetX;
         this.joystickPosition.y = offsetY;
       }
+      
+      this.updateJoystickVisuals();
+    }
+  }
+  
+  /**
+   * Update joystick visuals to match its position
+   */
+  updateJoystickVisuals(): void {
+    const handle = document.getElementById('joystick-handle');
+    if (handle && this.joystickActive) {
+      const maxDistance = 30; // Max distance in pixels for handle movement
+      const moveX = this.joystickPosition.x * maxDistance;
+      const moveY = this.joystickPosition.y * maxDistance;
+      
+      handle.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% - ${moveY}px))`;
+    } else if (handle) {
+      // Reset to center
+      handle.style.transform = 'translate(-50%, -50%)';
     }
   }
   
@@ -282,10 +356,4 @@ export class InputController {
     this.mouseMovementX = event.movementX || 0;
     this.mouseMovementY = event.movementY || 0;
   }
-  
-  // Additional properties for the class
-  private initialX: number = 0;
-  private initialY: number = 0;
-  mouseMovementX: number = 0;
-  mouseMovementY: number = 0;
 } 

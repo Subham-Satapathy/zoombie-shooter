@@ -88,6 +88,11 @@ export class Game {
     // Enable pointer lock for desktop
     this.inputController.initPointerLock(this.renderer.domElement);
     
+    // Setup touch controls for mobile
+    if (this.inputController.isMobile) {
+      this.setupMobileControls();
+    }
+    
     // Start game
     this.start();
     
@@ -602,5 +607,37 @@ export class Game {
     this.givePlayerWeapon(WeaponType.RIFLE);
     
     console.log("Game has been reset and is ready to start again");
+  }
+  
+  /**
+   * Setup mobile-specific touch controls
+   */
+  setupMobileControls(): void {
+    // Get renderer element
+    const renderer = this.renderer.domElement;
+    
+    // Add touch event listeners to the main game area for shooting
+    // This enables touch-to-shoot anywhere on the right side of the screen
+    renderer.addEventListener('touchstart', (e: TouchEvent) => {
+      e.preventDefault();
+      
+      // Check if the touch is on the right side of the screen
+      // This avoids interfering with the joystick controls
+      const touch = e.touches[0];
+      if (touch.clientX > window.innerWidth / 2) {
+        this.startShooting();
+      }
+    });
+    
+    renderer.addEventListener('touchend', (e: TouchEvent) => {
+      e.preventDefault();
+      this.stopShooting();
+    });
+    
+    // Make mobile controls visible
+    const mobileControls = document.getElementById('mobile-controls');
+    if (mobileControls) {
+      mobileControls.style.display = 'block';
+    }
   }
 } 
