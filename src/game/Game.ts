@@ -285,6 +285,15 @@ export class Game {
           }
         }
         
+        // On mobile, use the joystick for aiming
+        if (this.inputController.isMobile && this.inputController.joystickActive) {
+          // Update player rotation based on joystick position
+          this.player.updateRotation(
+            this.inputController.mouseMovementX * 0.1,
+            this.inputController.mouseMovementY * 0.1
+          );
+        }
+        
         // Check for melee combat (only if player is out of ammo)
         this.checkMeleeCombat();
       }

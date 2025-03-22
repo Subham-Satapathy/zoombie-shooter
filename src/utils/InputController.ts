@@ -97,7 +97,7 @@ export class InputController {
    * Create virtual joystick UI elements
    */
   createVirtualJoystick(container: HTMLElement): void {
-    // Create joystick base
+    // Create joystick base (fixed position on left side)
     const joystickBase = document.createElement('div');
     joystickBase.id = 'joystick-base';
     joystickBase.style.position = 'absolute';
@@ -106,8 +106,8 @@ export class InputController {
     joystickBase.style.borderRadius = '60px';
     joystickBase.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
     joystickBase.style.border = '2px solid rgba(255, 255, 255, 0.4)';
-    joystickBase.style.bottom = '80px';
-    joystickBase.style.left = '80px';
+    joystickBase.style.bottom = '100px';
+    joystickBase.style.left = '100px'; 
     joystickBase.style.transform = 'translate(-50%, -50%)';
     
     // Create joystick handle
@@ -123,8 +123,21 @@ export class InputController {
     joystickHandle.style.transform = 'translate(-50%, -50%)';
     joystickHandle.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
     
+    // Add label to indicate this is for aiming
+    const joystickLabel = document.createElement('div');
+    joystickLabel.textContent = 'AIM';
+    joystickLabel.style.position = 'absolute';
+    joystickLabel.style.top = '-30px';
+    joystickLabel.style.left = '50%';
+    joystickLabel.style.transform = 'translateX(-50%)';
+    joystickLabel.style.color = 'white';
+    joystickLabel.style.fontSize = '16px';
+    joystickLabel.style.fontWeight = 'bold';
+    joystickLabel.style.textShadow = '0 0 5px black';
+    
     // Add to DOM
     joystickBase.appendChild(joystickHandle);
+    joystickBase.appendChild(joystickLabel);
     container.appendChild(joystickBase);
   }
   
@@ -133,18 +146,21 @@ export class InputController {
    */
   handleJoystickStart(x: number, y: number): void {
     this.joystickActive = true;
-    // Store the initial touch position as the joystick center
-    this.initialX = x;
-    this.initialY = y;
-    
-    // Update visual position of joystick base
+    // Get position of joystick base for reference
     const joystickBase = document.getElementById('joystick-base');
     if (joystickBase) {
-      joystickBase.style.left = `${x}px`;
-      joystickBase.style.bottom = `${window.innerHeight - y}px`;
+      const rect = joystickBase.getBoundingClientRect();
+      // Use center of the joystick as the initial position
+      this.initialX = rect.left + rect.width / 2;
+      this.initialY = rect.top + rect.height / 2;
+    } else {
+      // Fallback if element not found
+      this.initialX = 100;
+      this.initialY = window.innerHeight - 100;
     }
     
-    this.updateJoystickVisuals();
+    // Calculate initial offset
+    this.handleJoystickMove(x, y);
   }
   
   /**
@@ -166,6 +182,10 @@ export class InputController {
         this.joystickPosition.y = offsetY;
       }
       
+      // Update aiming input - store as mouse movement values
+      this.mouseMovementX = this.joystickPosition.x * 2; // Scale for sensitivity
+      this.mouseMovementY = this.joystickPosition.y * 2;
+      
       this.updateJoystickVisuals();
     }
   }
@@ -180,7 +200,7 @@ export class InputController {
       const moveX = this.joystickPosition.x * maxDistance;
       const moveY = this.joystickPosition.y * maxDistance;
       
-      handle.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% - ${moveY}px))`;
+      handle.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
     } else if (handle) {
       // Reset to center
       handle.style.transform = 'translate(-50%, -50%)';
@@ -200,21 +220,19 @@ export class InputController {
   getMovementDirection(): THREE.Vector3 {
     const direction = new THREE.Vector3(0, 0, 0);
     
-    if (!this.isMobile) {
-      // Desktop controls - only allow left/right movement
-      if (this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft')) direction.x = -1;
-      if (this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight')) direction.x = 1;
-      // Forward/backward movement disabled
-      // if (this.isKeyPressed('KeyW') || this.isKeyPressed('ArrowUp')) direction.z = -1;
-      // if (this.isKeyPressed('KeyS') || this.isKeyPressed('ArrowDown')) direction.z = 1;
-    } else {
-      // Mobile joystick controls - only allow horizontal movement
-      if (this.joystickActive) {
-        direction.x = this.joystickPosition.x;
-        // Ignore vertical joystick movement
-        // direction.z = this.joystickPosition.y;
-      }
+    // On mobile, we just use simple automatic movement forward
+    if (this.isMobile) {
+      direction.x = 0;  // No left-right movement on mobile (joystick is for aiming now)
+      direction.z = -1; // Always move forward slowly
+      return direction;
     }
+    
+    // Desktop controls - only allow left/right movement
+    if (this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft')) direction.x = -1;
+    if (this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight')) direction.x = 1;
+    // Forward/backward movement disabled for desktop
+    // if (this.isKeyPressed('KeyW') || this.isKeyPressed('ArrowUp')) direction.z = -1;
+    // if (this.isKeyPressed('KeyS') || this.isKeyPressed('ArrowDown')) direction.z = 1;
     
     // Normalize the direction vector
     if (direction.lengthSq() > 0) {

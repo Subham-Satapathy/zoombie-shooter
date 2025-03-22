@@ -441,4 +441,46 @@ export class Player {
     // Dispose of weapons
     this.weapons.forEach(weapon => weapon.dispose());
   }
+  
+  /**
+   * Update player rotation explicitly - used for mobile controls
+   * @param deltaX Horizontal rotation amount
+   * @param deltaY Vertical rotation amount
+   */
+  updateRotation(deltaX: number, deltaY: number): void {
+    if (this.isDead) return;
+    
+    let rotationChanged = false;
+    
+    // Horizontal rotation (around Y axis)
+    if (deltaX !== 0) {
+      // Apply horizontal rotation
+      this.rotation.y -= deltaX;
+      rotationChanged = true;
+    }
+    
+    // Vertical rotation (around X axis)
+    if (deltaY !== 0) {
+      // Apply vertical rotation
+      this.rotation.x -= deltaY;
+      
+      // Clamp vertical rotation to allow looking down to 45 degrees (-PI/4)
+      this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
+      rotationChanged = true;
+    }
+    
+    // Update weapon position based on rotation if rotation changed
+    if (rotationChanged) {
+      const currentWeapon = this.getCurrentWeapon();
+      if (currentWeapon) {
+        currentWeapon.updatePosition(this.camera);
+      }
+      
+      // Update camera position immediately
+      this.updateCamera();
+      
+      // Update model rotation
+      this.model.rotation.copy(this.rotation);
+    }
+  }
 }

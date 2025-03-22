@@ -191,6 +191,16 @@ body {
 #shoot-btn {
   background-color: rgba(231, 111, 81, 0.6) !important;
   border: 2px solid var(--secondary-color) !important;
+  width: 100px !important;
+  height: 100px !important;
+  font-size: 20px !important;
+  animation: pulse-button 2s infinite;
+}
+
+@keyframes pulse-button {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 #game-over {
