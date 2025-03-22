@@ -31,7 +31,7 @@ export interface WeaponProperties {
 export class Weapon {
   type: WeaponType;
   properties: WeaponProperties;
-  model: THREE.Object3D;
+  model!: THREE.Object3D;
   scene: THREE.Scene;
   ammoInMagazine: number;
   totalAmmo: number;
@@ -158,7 +158,7 @@ export class Weapon {
   /**
    * Update weapon position relative to camera
    */
-  updatePosition(camera: THREE.PerspectiveCamera): void {
+  updatePosition(_camera: THREE.PerspectiveCamera): void {
     // No need to position invisible weapons
     return;
   }
@@ -326,86 +326,20 @@ export class Weapon {
   checkZombieHits(raycaster: THREE.Raycaster, zombies: Zombie[], damage: number): void {
     console.log('Firing weapon - zombies count:', zombies.length);
     
-    // APPROACH 1: Test against all zombie objects directly
-    // This is more reliable than collecting individual meshes
-    const zombieObjects: THREE.Object3D[] = [];
-    const aliveZombies: Zombie[] = [];
-    
-    zombies.forEach(zombie => {
-      if (!zombie.isDead) {
-        zombieObjects.push(zombie.model);
-        aliveZombies.push(zombie);
-      }
-    });
-    
-    console.log('Active zombie objects:', zombieObjects.length);
-    
-    // Check for intersections with whole zombie models
+    // Find all zombie intersections
+    const zombieObjects = zombies.map(zombie => zombie.model);
     const intersects = raycaster.intersectObjects(zombieObjects, true);
-    console.log('Intersections found:', intersects.length);
     
     if (intersects.length > 0) {
-      // Find which zombie was hit
-      const hitObject = intersects[0].object;
-      
-      // Find the zombie this mesh belongs to by checking the object hierarchy
-      let hitZombie: Zombie | null = null;
-      
-      for (const zombie of aliveZombies) {
-        if (this.isChildOf(hitObject, zombie.model)) {
-          hitZombie = zombie;
-          break;
-        }
-      }
-      
-      if (hitZombie) {
-        console.log('Hit zombie! Damage:', damage);
-        // Apply damage to zombie
-        const killed = hitZombie.takeDamage(damage);
-        if (killed) {
-          console.log('Zombie killed!');
-        }
-      }
-    }
-    
-    // APPROACH 2: If no hits using the object hierarchy, try distance-based detection
-    // This is a fallback for when raycasting fails
-    if (intersects.length === 0) {
-      const rayOrigin = raycaster.ray.origin;
-      const rayDirection = raycaster.ray.direction;
-      
-      // Find closest zombie in the ray direction
-      let closestZombie: Zombie | null = null;
-      let closestDistance = Number.MAX_VALUE;
-      
-      aliveZombies.forEach(zombie => {
-        // Vector from ray origin to zombie
-        const toZombie = new THREE.Vector3().subVectors(zombie.position, rayOrigin);
-        
-        // Project this vector onto ray direction
-        const projectionLength = toZombie.dot(rayDirection);
-        
-        // Only consider zombies in front of the ray
-        if (projectionLength > 0) {
-          // Get the closest point on the ray to the zombie
-          const projectedPoint = new THREE.Vector3()
-            .copy(rayDirection)
-            .multiplyScalar(projectionLength)
-            .add(rayOrigin);
-          
-          // Calculate distance from projected point to zombie
-          const distance = projectedPoint.distanceTo(zombie.position);
-          
-          // If within reasonable range and closer than previous zombies
-          if (distance < 1.0 && projectionLength < this.properties.range && projectionLength < closestDistance) {
-            closestZombie = zombie;
-            closestDistance = projectionLength;
-          }
-        }
-      });
+      // Find the closest zombie hit
+      const closestIntersect = intersects[0];
+      const closestZombie = zombies.find(zombie => 
+        this.isChildOf(closestIntersect.object, zombie.model)
+      );
       
       if (closestZombie) {
-        console.log('Distance-based hit! Zombie:', closestZombie);
+        console.log('Hit zombie! Damage:', damage);
+        // Apply damage to zombie
         const killed = closestZombie.takeDamage(damage);
         if (killed) {
           console.log('Zombie killed!');

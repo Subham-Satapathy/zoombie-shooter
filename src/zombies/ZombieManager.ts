@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { Zombie, ZombieType } from './Zombie';
 import { Player } from '../models/Player';
-import { MathUtils } from '../utils/MathUtils';
 
 /**
  * Wave configuration interface
@@ -17,7 +16,7 @@ export interface WaveConfig {
 /**
  * Manager for handling zombies and waves
  */
-export class ZombieManager {
+export class ZombieManager extends THREE.Object3D {
   zombies: Zombie[];
   scene: THREE.Scene;
   player: Player;
@@ -25,10 +24,12 @@ export class ZombieManager {
   waveActive: boolean;
   zombiesRemainingInWave: number;
   zombiesSpawnedInWave: number;
-  spawnInterval: number | null;
+  spawnInterval: number | NodeJS.Timeout | null;
   spawnCooldown: number;
   
   constructor(scene: THREE.Scene, player: Player) {
+    super(); // Call THREE.Object3D constructor
+    
     this.scene = scene;
     this.player = player;
     this.zombies = [];
@@ -38,6 +39,10 @@ export class ZombieManager {
     this.zombiesSpawnedInWave = 0;
     this.spawnInterval = null;
     this.spawnCooldown = 0;
+    
+    // Add this manager to the scene for zombie collision detection
+    this.name = 'zombieManager';
+    this.scene.add(this);
   }
   
   /**

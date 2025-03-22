@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { MathUtils } from '../utils/MathUtils';
 import { Player } from '../models/Player';
 
 /**
@@ -34,7 +33,7 @@ export class Zombie {
   properties: ZombieProperties;
   position: THREE.Vector3;
   rotation: THREE.Euler;
-  model: THREE.Object3D;
+  model!: THREE.Object3D;
   scene: THREE.Scene;
   health: number;
   lastAttackTime: number;
@@ -43,8 +42,8 @@ export class Zombie {
   player: Player;
   
   // Part references for animation
-  leftArm: THREE.Mesh;
-  rightArm: THREE.Mesh;
+  leftArm!: THREE.Mesh;
+  rightArm!: THREE.Mesh;
   
   // Animation properties
   clock: THREE.Clock;
@@ -1046,12 +1045,110 @@ export class Zombie {
     // Use a minimum move distance to ensure zombies always move
     const effectiveMoveDistance = Math.max(moveDistance, 0.01);
     
-    // Update position with explicit values
+    // Calculate new potential position
     const newX = this.position.x + direction.x * effectiveMoveDistance;
     const newZ = this.position.z + direction.z * effectiveMoveDistance;
     
-    this.position.x = newX;
-    this.position.z = newZ;
+    // Create a temporary position to check for collisions
+    const newPosition = new THREE.Vector3(newX, this.position.y, newZ);
+    
+    // Get all zombies from the zombie manager
+    const zombieManager = this.scene.getObjectByName('zombieManager') as any;
+    const allZombies = zombieManager?.zombies || [];
+    
+    // Check for collision with other zombies
+    const minZombieDistance = 1.5; // Minimum distance between zombies
+    
+    // Calculate distance to player to adjust spacing based on proximity to player
+    const distanceToPlayer = this.position.distanceTo(this.player.position);
+    
+    // Adjust minimum distance based on proximity to player (increase spacing further away)
+    const adjustedMinDistance = minZombieDistance * (0.8 + Math.min(distanceToPlayer / 30, 1.5));
+    
+    // Count nearby zombies to detect congestion
+    let nearbyZombies = 0;
+    let closestZombie = null;
+    let closestDistance = Infinity;
+    
+    // Find zombies that are too close
+    for (const otherZombie of allZombies) {
+      // Skip this zombie itself
+      if (otherZombie === this) continue;
+      
+      // Calculate distance to the other zombie at the new position
+      const distanceToOtherZombie = newPosition.distanceTo(otherZombie.position);
+      
+      // Count zombies within extended range to detect congestion
+      if (distanceToOtherZombie < adjustedMinDistance * 1.5) {
+        nearbyZombies++;
+      }
+      
+      // Track the closest zombie
+      if (distanceToOtherZombie < closestDistance) {
+        closestDistance = distanceToOtherZombie;
+        closestZombie = otherZombie;
+      }
+    }
+    
+    // High congestion detected - create formation instead of clumping
+    if (nearbyZombies > 2 && distanceToPlayer < 10) {
+      // Calculate angle to player
+      const angleToPlayer = Math.atan2(
+        this.player.position.x - this.position.x,
+        this.player.position.z - this.position.z
+      );
+      
+      // Add some variation based on zombie's unique properties to create a formation
+      const uniqueAngleOffset = (this.health % 100) / 100 * Math.PI; // Unique for each zombie
+      
+      // Create a circular formation around player
+      const formationRadius = Math.max(3.0, distanceToPlayer * 0.7); // Keep some distance
+      const formationAngle = angleToPlayer + uniqueAngleOffset;
+      
+      // Calculate position in the formation
+      const formationX = this.player.position.x + Math.sin(formationAngle) * formationRadius;
+      const formationZ = this.player.position.z + Math.cos(formationAngle) * formationRadius;
+      
+      // Move towards formation position instead
+      const formationDir = new THREE.Vector3(
+        formationX - this.position.x,
+        0,
+        formationZ - this.position.z
+      ).normalize();
+      
+      // Apply reduced speed when in formation mode
+      const formationSpeed = effectiveMoveDistance * 0.6;
+      newPosition.x = this.position.x + formationDir.x * formationSpeed;
+      newPosition.z = this.position.z + formationDir.z * formationSpeed;
+    }
+    // Regular collision avoidance
+    else if (closestZombie && closestDistance < adjustedMinDistance) {
+      // Calculate repulsion direction (away from closest zombie)
+      const repulsionDir = new THREE.Vector3()
+        .subVectors(this.position, closestZombie.position)
+        .normalize();
+      
+      // Apply sideways movement to go around
+      // Stronger repulsion when very close
+      const repulsionStrength = Math.max(0.5, 1.2 - (closestDistance / adjustedMinDistance));
+      direction.x += repulsionDir.x * repulsionStrength;
+      direction.z += repulsionDir.z * repulsionStrength;
+      
+      // Add slight randomization to break symmetry and prevent "stuck" zombies
+      direction.x += (Math.random() - 0.5) * 0.3;
+      direction.z += (Math.random() - 0.5) * 0.3;
+      
+      direction.normalize();
+      
+      // Recalculate position with adjusted direction and reduced speed
+      const adjustedMoveDistance = effectiveMoveDistance * 0.7;
+      newPosition.x = this.position.x + direction.x * adjustedMoveDistance;
+      newPosition.z = this.position.z + direction.z * adjustedMoveDistance;
+    }
+    
+    // Update position
+    this.position.x = newPosition.x;
+    this.position.z = newPosition.z;
     
     if (shouldLog) {
       console.log(`New position: (${this.position.x.toFixed(2)}, ${this.position.z.toFixed(2)})`);
@@ -1226,25 +1323,27 @@ export class Zombie {
       let particlesRemaining = false;
       
       // Update each particle
-      particles.children.forEach((particle: THREE.Mesh) => {
-        const userData = particle.userData;
-        const age = Date.now() - userData.createdAt;
-        
-        if (age < userData.lifetime) {
-          particlesRemaining = true;
+      particles.children.forEach((particle) => {
+        if (particle instanceof THREE.Mesh) {
+          const userData = particle.userData;
+          const age = Date.now() - userData.createdAt;
           
-          // Move particle according to velocity
-          particle.position.add(userData.velocity);
-          
-          // Add gravity effect
-          userData.velocity.y -= 0.002;
-          
-          // Fade out as it gets older
-          const fadeProgress = age / userData.lifetime;
-          (particle.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - fadeProgress);
-        } else {
-          // Make invisible when lifetime is over
-          (particle.material as THREE.MeshBasicMaterial).opacity = 0;
+          if (age < userData.lifetime) {
+            particlesRemaining = true;
+            
+            // Move particle according to velocity
+            particle.position.add(userData.velocity);
+            
+            // Add gravity effect
+            userData.velocity.y -= 0.002;
+            
+            // Fade out as it gets older
+            const fadeProgress = age / userData.lifetime;
+            (particle.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - fadeProgress);
+          } else {
+            // Make invisible when lifetime is over
+            (particle.material as THREE.MeshBasicMaterial).opacity = 0;
+          }
         }
       });
       

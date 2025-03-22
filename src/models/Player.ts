@@ -19,7 +19,7 @@ export class Player {
   position: THREE.Vector3;
   rotation: THREE.Euler;
   velocity: THREE.Vector3;
-  model: THREE.Object3D;
+  model!: THREE.Object3D;
   scene: THREE.Scene;
   cameraView: CameraView;
   health: number;
@@ -117,10 +117,7 @@ export class Player {
     if (this.isDead) return;
     
     // Get movement direction from input controller (but we'll ignore it to prevent movement)
-    const moveDirection = this.inputController.getMovementDirection();
-    
-    // Apply movement to velocity
-    const speed = this.moveSpeed * deltaTime;
+    this.inputController.getMovementDirection();
     
     // DISABLED: No horizontal movement allowed, player is stationary
     // this.position.x += moveDirection.x * speed;
@@ -156,7 +153,6 @@ export class Player {
       // If no pointer movement but mouse button is pressed, force an initial rotation
       // This helps make the gun pointer responsive immediately
       if (!rotationChanged && this.inputController.mouseButtons.left) {
-        const mousePosition = this.inputController.mousePosition;
         // Apply a tiny rotation to "wake up" the controls
         this.rotation.y += 0.0001;
         this.rotation.x += 0.0001;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Player, CameraView } from '../models/Player';
+import { Player } from '../models/Player';
 import { InputController } from '../utils/InputController';
 import { ZombieManager } from '../zombies/ZombieManager';
 import { Weapon, WeaponType } from '../weapons/Weapon';
@@ -15,14 +15,14 @@ export class Game {
   renderer: THREE.WebGLRenderer;
   
   // Game objects
-  player: Player;
-  zombieManager: ZombieManager;
+  player!: Player;
+  zombieManager!: ZombieManager;
   inputController: InputController;
   
   // Game state
   isRunning: boolean;
   score: number;
-  autoShootInterval: number | null;
+  autoShootInterval: number | NodeJS.Timeout | null;
   isPlayerShooting: boolean;
   
   // Database service
