@@ -285,9 +285,9 @@ export class Game {
           }
         }
         
-        // On mobile, use the joystick for aiming
-        if (this.inputController.isMobile && this.inputController.joystickActive) {
-          // Update player rotation based on joystick position
+        // On mobile, use touch movement for aiming
+        if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
+          // Update player rotation based on touch movement
           this.player.updateRotation(
             this.inputController.mouseMovementX * 0.1,
             this.inputController.mouseMovementY * 0.1

@@ -12,8 +12,6 @@ export class InputController {
   mouseButtons: { left: boolean };
   pointerLockJustInitialized: boolean = false;
   pointerLockEstablished: boolean = false;
-  private initialX: number = 0;
-  private initialY: number = 0;
   mouseMovementX: number = 0;
   mouseMovementY: number = 0;
   private lastTouchX: number = 0;
@@ -97,7 +95,7 @@ export class InputController {
           }
         });
         
-        gameContainer.addEventListener('touchend', (e) => {
+        gameContainer.addEventListener('touchend', () => {
           // Reset movement
           this.mouseMovementX = 0;
           this.mouseMovementY = 0;
