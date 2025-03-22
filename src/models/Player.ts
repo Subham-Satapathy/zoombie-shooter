@@ -443,44 +443,31 @@ export class Player {
   }
   
   /**
-   * Update player rotation explicitly - used for mobile controls
-   * @param deltaX Horizontal rotation amount
-   * @param deltaY Vertical rotation amount
+   * Update the player's rotation directly
+   * Used for mobile touch controls
    */
   updateRotation(deltaX: number, deltaY: number): void {
     if (this.isDead) return;
     
-    let rotationChanged = false;
-    
-    // Horizontal rotation (around Y axis)
-    if (deltaX !== 0) {
-      // Apply horizontal rotation
+    // Only update if there's actual movement
+    if (deltaX !== 0 || deltaY !== 0) {
+      // Horizontal rotation (around Y axis) - use deltaX
       this.rotation.y -= deltaX;
-      rotationChanged = true;
-    }
-    
-    // Vertical rotation (around X axis)
-    if (deltaY !== 0) {
-      // Apply vertical rotation
-      this.rotation.x -= deltaY;
       
-      // Clamp vertical rotation to allow looking down to 45 degrees (-PI/4)
+      // Vertical rotation (around X axis) - use deltaY
+      this.rotation.x += -deltaY;
+      
+      // Clamp vertical rotation to prevent looking too far up or down
       this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
-      rotationChanged = true;
-    }
-    
-    // Update weapon position based on rotation if rotation changed
-    if (rotationChanged) {
+      
+      // Update camera and weapon position
+      this.updateCamera();
+      
+      // Update weapon position
       const currentWeapon = this.getCurrentWeapon();
       if (currentWeapon) {
         currentWeapon.updatePosition(this.camera);
       }
-      
-      // Update camera position immediately
-      this.updateCamera();
-      
-      // Update model rotation
-      this.model.rotation.copy(this.rotation);
     }
   }
 }

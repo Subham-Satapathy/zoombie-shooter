@@ -81,13 +81,23 @@ export class InputController {
             const touchX = e.touches[0].clientX;
             const touchY = e.touches[0].clientY;
             
-            // Calculate delta movement
-            const deltaX = touchX - this.lastTouchX;
-            const deltaY = touchY - this.lastTouchY;
-            
-            // Update rotation values based on touch movement
-            this.mouseMovementX = deltaX * 0.2; // Reduce sensitivity
-            this.mouseMovementY = deltaY * 0.2; // Reduce sensitivity
+            // Only process movement if we have initial touch coordinates
+            if (this.lastTouchX !== 0 && this.lastTouchY !== 0) {
+              // Calculate delta movement
+              const deltaX = touchX - this.lastTouchX;
+              const deltaY = touchY - this.lastTouchY;
+              
+              // Only apply movement if there's a significant change to avoid drift
+              if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+                // Update rotation values based on touch movement
+                this.mouseMovementX = deltaX * 0.2; // Reduce sensitivity
+                this.mouseMovementY = deltaY * 0.2; // Reduce sensitivity
+              } else {
+                // Reset for small movements to prevent drift
+                this.mouseMovementX = 0;
+                this.mouseMovementY = 0;
+              }
+            }
             
             // Store current position for next move
             this.lastTouchX = touchX;
@@ -96,9 +106,20 @@ export class InputController {
         });
         
         gameContainer.addEventListener('touchend', () => {
-          // Reset movement
+          // Reset movement immediately to stop any continued rotation
           this.mouseMovementX = 0;
           this.mouseMovementY = 0;
+          // Also reset the last touch positions to prevent jumps on next touch
+          this.lastTouchX = 0;
+          this.lastTouchY = 0;
+        });
+        
+        gameContainer.addEventListener('touchcancel', () => {
+          // Also handle touch cancel events
+          this.mouseMovementX = 0;
+          this.mouseMovementY = 0;
+          this.lastTouchX = 0;
+          this.lastTouchY = 0;
         });
       }
     }
