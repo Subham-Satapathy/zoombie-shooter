@@ -20,9 +20,13 @@ export class DatabaseService {
   private leaderboardListeners: ((scores: ScoreEntry[]) => void)[] = [];
   
   constructor() {
-    // Your Supabase credentials - replace these with your actual credentials
-    const supabaseUrl = 'https://jvjafjlbxvjkjptymfqk.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2amFmamxieHZqa2pwdHltZnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NjY5NzksImV4cCI6MjA1ODI0Mjk3OX0.24hgv8Gx1OJSDk5BSnsXWFbtPWBRu9q61FUxYfloxhc';
+    // Use environment variables or fall back to hardcoded values
+    const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || 'https://jvjafjlbxvjkjptymfqk.supabase.co';
+    const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2amFmamxieHZqa2pwdHltZnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NjY5NzksImV4cCI6MjA1ODI0Mjk3OX0.24hgv8Gx1OJSDk5BSnsXWFbtPWBRu9q61FUxYfloxhc';
+    
+    console.log('Initializing Supabase with URL:', supabaseUrl);
+    // Don't log the full key in production, just indicate whether it's set
+    console.log('Supabase key is set:', !!supabaseKey);
     
     this.supabase = createClient(supabaseUrl, supabaseKey);
     
@@ -45,12 +49,26 @@ export class DatabaseService {
       
       if (error) {
         console.error('⚠️ Supabase connection error:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
         console.error('Please check your Supabase credentials and table configuration.');
+        
+        // Try to provide more helpful information about common issues
+        if (error.code === 'PGRST301') {
+          console.error('This may be a CORS issue. Check your Supabase project settings to ensure your domain is allowed.');
+        } else if (error.code === '42P01') {
+          console.error('Table "leaderboard" does not exist. Please create it in your Supabase project.');
+        } else if (error.code === '401') {
+          console.error('Authentication error. Check your Supabase anon key.');
+        }
+        
         return;
       }
       
       console.log('✅ Supabase connection successful');
       console.log('Leaderboard table exists and is accessible');
+      console.log('Got initial data:', data);
     } catch (error) {
       console.error('❌ Failed to verify Supabase connection:', error);
       console.error('Please ensure the Supabase project is properly set up following the README instructions.');
@@ -117,6 +135,8 @@ export class DatabaseService {
    */
   async getTopScores(limit: number = 10): Promise<ScoreEntry[]> {
     try {
+      console.log(`Fetching top ${limit} scores from leaderboard...`);
+      
       const { data, error } = await this.supabase
         .from('leaderboard')
         .select('*')
@@ -125,12 +145,24 @@ export class DatabaseService {
         
       if (error) {
         console.error('Error fetching top scores:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
         return [];
       }
       
+      console.log(`Successfully fetched ${data?.length || 0} scores`);
       return data || [];
     } catch (error) {
-      console.error('Error fetching top scores:', error);
+      console.error('Exception when fetching top scores:', error);
+      // If we can determine it's a network error, log that specifically
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          console.error('This appears to be a network error. Check your internet connection and CORS settings.');
+        }
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+      }
       return [];
     }
   }
