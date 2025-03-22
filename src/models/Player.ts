@@ -125,10 +125,10 @@ export class Player {
     // Update model position
     this.model.position.copy(this.position);
     
-    // Player's rotation from mouse movement
-    if (!this.inputController.isMobile) {
-      let rotationChanged = false;
-      
+    let rotationChanged = false;
+    
+    // Handle both mobile and non-mobile rotation
+    if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
       // Horizontal rotation (around Y axis)
       if (this.inputController.mouseMovementX !== 0) {
         // Reverse X movement for more natural camera control 
@@ -146,24 +146,28 @@ export class Player {
         rotationChanged = true;
       }
       
-      // Reset mouse movement to avoid continued rotation
+      // Reset movements immediately after applying to prevent continuous rotation
       this.inputController.mouseMovementX = 0;
       this.inputController.mouseMovementY = 0;
-      
+    }
+    
+    // Special handling for non-mobile input
+    if (!this.inputController.isMobile) {
       // If no pointer movement but mouse button is pressed, force an initial rotation
       // This helps make the gun pointer responsive immediately
       if (!rotationChanged && this.inputController.mouseButtons.left) {
         // Apply a tiny rotation to "wake up" the controls
         this.rotation.y += 0.0001;
         this.rotation.x += 0.0001;
+        rotationChanged = true;
       }
-      
-      // Update weapon position based on rotation if rotation changed
-      if (rotationChanged) {
-        const currentWeapon = this.getCurrentWeapon();
-        if (currentWeapon) {
-          currentWeapon.updatePosition(this.camera);
-        }
+    }
+    
+    // Update weapon position based on rotation if rotation changed
+    if (rotationChanged) {
+      const currentWeapon = this.getCurrentWeapon();
+      if (currentWeapon) {
+        currentWeapon.updatePosition(this.camera);
       }
     }
     

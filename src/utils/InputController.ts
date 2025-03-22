@@ -89,7 +89,7 @@ export class InputController {
               
               // Only apply movement if there's a significant change to avoid drift
               if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
-                // Update rotation values based on touch movement
+                // Update rotation values based on touch movement - with reduced sensitivity
                 this.mouseMovementX = deltaX * 0.2; // Reduce sensitivity
                 this.mouseMovementY = deltaY * 0.2; // Reduce sensitivity
               } else {
@@ -289,6 +289,7 @@ export class InputController {
    */
   onMouseMove(event: MouseEvent): void {
     // Store mouse movement for camera rotation
+    // Only store the exact movement amount without additional processing
     this.mouseMovementX = event.movementX || 0;
     this.mouseMovementY = event.movementY || 0;
   }
