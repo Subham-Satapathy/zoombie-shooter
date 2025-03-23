@@ -460,15 +460,24 @@ body {
     font-size: 14px;
     top: 10px;
     left: 10px;
-    padding: 5px 10px;
+    right: auto;
+    min-width: 100px;
+    text-align: left;
+    padding: 8px 12px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
+    position: fixed;
+    font-weight: bold;
   }
   
   #health-bar {
-    width: 60%;
-    top: 10px;
-    height: 20px;
+    width: calc(100% - 20px);
+    max-width: 300px;
+    top: 45px;
+    left: 10px;
+    right: auto;
+    transform: none;
+    height: 22px;
     position: fixed;
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -480,15 +489,18 @@ body {
   
   #health-text {
     font-size: 12px;
+    font-weight: bold;
   }
   
   #ammo-counter {
     font-size: 14px;
     position: fixed;
-    top: 10px;
-    right: 10px;
-    left: auto;
-    padding: 5px 10px;
+    top: 77px;
+    left: 10px;
+    right: auto;
+    min-width: 100px;
+    text-align: left;
+    padding: 8px 12px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     color: #e76f51;
@@ -497,12 +509,17 @@ body {
   
   #score-display {
     font-size: 14px;
-    top: 50px;
+    top: 110px;
     left: 10px;
-    padding: 5px 10px;
+    right: auto;
+    min-width: 100px;
+    text-align: left;
+    padding: 8px 12px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     color: #2a9d8f;
+    position: fixed;
+    font-weight: bold;
   }
   
   #action-buttons {
