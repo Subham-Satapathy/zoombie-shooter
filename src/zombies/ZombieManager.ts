@@ -60,6 +60,13 @@ export class ZombieManager extends THREE.Object3D {
     // Update UI
     this.updateWaveUI();
     
+    // Dispatch wave-start event
+    document.dispatchEvent(new CustomEvent('wave-start', {
+      detail: {
+        waveNumber: this.currentWave
+      }
+    }));
+    
     // Start spawning zombies with minimal delay
     this.spawnCooldown = 0.2; // Reduced initial delay
     

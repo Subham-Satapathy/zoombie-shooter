@@ -194,6 +194,15 @@ export class Weapon {
       this.ammoInMagazine = 0;
     }
     
+    // Auto-reload when magazine is empty and there's ammo available
+    if (this.ammoInMagazine === 0 && this.totalAmmo > 0) {
+      console.log('Magazine empty, auto-reloading...');
+      // Small delay before auto-reload to make it feel natural
+      setTimeout(() => {
+        this.reload();
+      }, 300);
+    }
+    
     // Update UI AFTER changing the ammo count
     this.updateAmmoUI();
     
@@ -379,66 +388,101 @@ export class Weapon {
   }
   
   /**
-   * Start reloading
+   * Reload the weapon
+   * @returns Whether the reload was initiated successfully
    */
   reload(): boolean {
-    if (this.isReloading || this.ammoInMagazine === this.properties.magazineSize || this.totalAmmo <= 0) {
+    // Can't reload if already reloading or if magazine is full
+    if (this.isReloading || this.ammoInMagazine === this.properties.magazineSize) {
       return false;
     }
     
+    // Can't reload if no ammo in reserve
+    if (this.totalAmmo <= 0) {
+      return false;
+    }
+    
+    console.log('Reloading weapon:', this.type);
+    
+    // Start reload animation
     this.isReloading = true;
     
-    // Play reload animation
-    this.playReloadAnimation();
+    // Calculate ammo to add
+    const ammoToAdd = Math.min(
+      this.properties.magazineSize - this.ammoInMagazine,
+      this.totalAmmo
+    );
     
-    // Set timeout for reload time
-    setTimeout(() => {
-      // Calculate ammo to add
-      const ammoToAdd = Math.min(
-        this.properties.magazineSize - this.ammoInMagazine,
-        this.totalAmmo
-      );
+    // Show reload indicator on UI
+    const ammoCounter = document.getElementById('ammo-counter');
+    if (ammoCounter) {
+      // Change to reloading text with pulsing effect
+      ammoCounter.textContent = 'Reloading...';
+      ammoCounter.style.color = '#ffffff';
+      ammoCounter.style.animation = 'pulse 1s infinite';
       
-      // Update ammo counts
-      this.ammoInMagazine += ammoToAdd;
-      this.totalAmmo -= ammoToAdd;
+      // Create a reloading animation effect using text updates
+      let dotsCount = 0;
+      const reloadingInterval = setInterval(() => {
+        dotsCount = (dotsCount + 1) % 4;
+        let dots = '';
+        for (let i = 0; i < dotsCount; i++) {
+          dots += '.';
+        }
+        ammoCounter.textContent = `Reloading${dots}`;
+      }, 200);
       
-      // Update UI
-      this.updateAmmoUI();
-      
-      // Reset reloading state
-      this.isReloading = false;
-    }, this.properties.reloadTime * 1000);
+      // Schedule reload completion
+      setTimeout(() => {
+        // Add ammo to magazine and remove from total
+        this.ammoInMagazine += ammoToAdd;
+        this.totalAmmo -= ammoToAdd;
+        
+        // Update UI
+        this.updateAmmoUI();
+        
+        // Reset reloading flag
+        this.isReloading = false;
+        
+        // Clear the reloading animation
+        clearInterval(reloadingInterval);
+        ammoCounter.style.animation = '';
+      }, this.properties.reloadTime * 1000);
+    } else {
+      // If UI element doesn't exist, still handle the reload logic
+      setTimeout(() => {
+        // Add ammo to magazine and remove from total
+        this.ammoInMagazine += ammoToAdd;
+        this.totalAmmo -= ammoToAdd;
+        
+        // Update UI
+        this.updateAmmoUI();
+        
+        // Reset reloading flag
+        this.isReloading = false;
+      }, this.properties.reloadTime * 1000);
+    }
     
     return true;
-  }
-  
-  /**
-   * Play reload animation
-   */
-  playReloadAnimation(): void {
-    // Store original position and rotation
-    const originalPosition = this.model.position.clone();
-    const originalRotation = this.model.rotation.clone();
-    
-    // Apply reload animation
-    this.model.position.y -= 0.1;
-    this.model.rotation.x += Math.PI / 6;
-    
-    // Return to original position after reload time
-    setTimeout(() => {
-      this.model.position.copy(originalPosition);
-      this.model.rotation.copy(originalRotation);
-    }, this.properties.reloadTime * 1000);
   }
   
   /**
    * Update ammo display in UI
    */
   updateAmmoUI(): void {
-    // Ammo counter element has been removed from UI
-    // Method kept for backward compatibility
-    return;
+    // Get the ammo counter element
+    const ammoCounter = document.getElementById('ammo-counter');
+    if (ammoCounter) {
+      // Update with current ammo values
+      ammoCounter.textContent = `Bullets: ${this.ammoInMagazine}/${this.totalAmmo}`;
+      
+      // Change color if low on ammo (less than 20% of magazine)
+      if (this.ammoInMagazine < this.properties.magazineSize * 0.2) {
+        ammoCounter.style.color = 'var(--danger-color)';
+      } else {
+        ammoCounter.style.color = 'var(--secondary-color)';
+      }
+    }
   }
   
   /**

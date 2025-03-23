@@ -142,11 +142,16 @@ export class Game {
    * Set up event listeners for game events
    */
   setupEventListeners(): void {
-    // Handle zombie killed event
+    // Handle zombie kill events
     document.addEventListener('zombie-killed', (e: any) => {
-      // Add score based on zombie type
-      const scoreValue = e.detail.scoreValue;
-      this.score += scoreValue;
+      // Add score
+      this.score += e.detail.scoreValue;
+      
+      // Update score display
+      const scoreElement = document.getElementById('score-display');
+      if (scoreElement) {
+        scoreElement.textContent = `Score: ${this.score}`;
+      }
       
       // Chance to drop ammo
       if (Math.random() < 0.3) {
@@ -154,6 +159,20 @@ export class Game {
         if (currentWeapon) {
           currentWeapon.addAmmo(Math.floor(Math.random() * 10) + 5);
         }
+      }
+    });
+    
+    // Handle wave start event
+    document.addEventListener('wave-start', (e: any) => {
+      // Reset ammo for the current weapon at the start of each wave
+      const currentWeapon = this.player.getCurrentWeapon();
+      if (currentWeapon) {
+        // Reset to full magazine and add some additional ammo
+        currentWeapon.ammoInMagazine = currentWeapon.properties.magazineSize;
+        currentWeapon.totalAmmo = currentWeapon.properties.magazineSize * 3;
+        currentWeapon.updateAmmoUI();
+        
+        console.log(`Wave ${e.detail.waveNumber} started - Ammo reset to ${currentWeapon.ammoInMagazine}/${currentWeapon.totalAmmo}`);
       }
     });
     
@@ -181,6 +200,12 @@ export class Game {
     // Reset score only on initial start, not on restart
     if (this.zombieManager.currentWave === 0) {
       this.score = 0;
+    }
+    
+    // Update score display
+    const scoreElement = document.getElementById('score-display');
+    if (scoreElement) {
+      scoreElement.textContent = `Score: ${this.score}`;
     }
     
     // Reset the health UI
