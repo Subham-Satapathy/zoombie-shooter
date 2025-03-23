@@ -1184,23 +1184,27 @@ export class Zombie {
     if (zombieManager && zombieManager.zombies) {
       nearbyZombiesCount = zombieManager.zombies.filter((z: Zombie) => {
         if (z.isDead) return false;
+        if (z === this) return false; // Don't count this zombie itself
         const distToPlayer = z.position.distanceTo(this.player.position);
         return distToPlayer < 5; // 5 units is considered "nearby"
       }).length;
     }
     
-    // Base damage from zombie properties
-    let adjustedDamage = Math.min(this.properties.damage, 10); // Cap base damage to prevent one-hit kills
+    // Use the zombie's actual damage value instead of capping at 10
+    let damage = this.properties.damage;
     
-    // Increase damage based on how many zombies are nearby
-    // Each nearby zombie increases damage by 20% up to a maximum of 5x damage
-    const multiplier = Math.min(5.0, 1 + (nearbyZombiesCount * 0.2));
-    adjustedDamage = Math.ceil(adjustedDamage * multiplier);
+    // Add a small boost if there are other zombies nearby (pack behavior)
+    // but each zombie deals its own full damage
+    if (nearbyZombiesCount > 0) {
+      // Add 10% damage for each nearby zombie up to 50% extra
+      const packBonus = Math.min(0.5, nearbyZombiesCount * 0.1);
+      damage = Math.ceil(damage * (1 + packBonus));
+    }
     
-    console.log(`💥 Attacked player with ${nearbyZombiesCount} nearby zombies for ${adjustedDamage} damage (x${multiplier.toFixed(1)} multiplier)`);
+    console.log(`💥 Zombie type ${this.type} attacked player for ${damage} damage (${nearbyZombiesCount} nearby zombies)`);
     
     // Apply damage to player
-    this.player.takeDamage(adjustedDamage);
+    this.player.takeDamage(damage);
     console.log(`Player health now: ${this.player.health}`);
     
     // Reset cooldown
