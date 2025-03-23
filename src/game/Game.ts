@@ -744,6 +744,9 @@ export class Game {
     // Give starting weapon
     this.givePlayerWeapon(WeaponType.RIFLE);
     
+    // Make sure health UI is updated
+    this.player.updateHealthUI();
+    
     console.log("Game has been reset and is ready to start again");
   }
   

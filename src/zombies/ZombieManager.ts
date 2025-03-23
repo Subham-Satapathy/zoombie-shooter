@@ -289,6 +289,9 @@ export class ZombieManager extends THREE.Object3D {
     this.zombiesRemainingInWave = 0;
     this.zombiesSpawnedInWave = 0;
     
+    // Update wave UI after reset
+    this.updateWaveUI();
+    
     console.log("Zombie manager reset complete");
   }
 } 
