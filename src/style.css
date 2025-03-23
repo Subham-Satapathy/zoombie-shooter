@@ -460,34 +460,71 @@ body {
     font-size: 14px;
     top: 10px;
     left: 10px;
-    padding: 3px 8px;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+  }
+  
+  #health-bar {
+    width: 60%;
+    top: 10px;
+    height: 20px;
+    position: fixed;
+    background-color: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  #health-fill {
+    background-color: #2a9d8f;
+  }
+  
+  #health-text {
+    font-size: 12px;
   }
   
   #ammo-counter {
     font-size: 14px;
+    position: fixed;
     top: 10px;
     right: 10px;
     left: auto;
-    padding: 3px 8px;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    color: #e76f51;
+    font-weight: bold;
   }
   
   #score-display {
     font-size: 14px;
-    top: 45px;
+    top: 50px;
     left: 10px;
-    padding: 3px 8px;
-  }
-  
-  #health-bar {
-    width: 200px;
-    top: 20px;
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    color: #2a9d8f;
   }
   
   #action-buttons {
-    position: fixed; /* Use fixed positioning for better performance */
-    bottom: 20px;
+    position: fixed;
+    bottom: 70px;
     right: 20px;
-    z-index: 15; /* Ensure it's above other elements */
+    z-index: 15;
+  }
+  
+  #shoot-btn {
+    width: 130px !important;
+    height: 130px !important;
+    font-size: 26px !important;
+    border-radius: 50% !important;
+    background-color: #e76f51 !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    font-weight: bold !important;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   
   #action-buttons button {
@@ -500,6 +537,10 @@ body {
   #action-buttons button:active {
     transform: scale(0.95) translateZ(0);
     opacity: 0.8;
+  }
+
+  #crosshair {
+    font-size: 32px; /* Larger crosshair for better visibility */
   }
 }
 
