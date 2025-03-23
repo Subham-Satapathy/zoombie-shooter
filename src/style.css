@@ -574,11 +574,14 @@ body {
   
   #username-input {
     width: 100%;
-    font-size: 18px; /* Larger font for touch */
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    border: 2px solid #666;
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    min-height: 60px;
+    -webkit-appearance: none;
+    user-select: text;
+    -webkit-user-select: text;
+    touch-action: manipulation;
   }
   
   #submit-score {

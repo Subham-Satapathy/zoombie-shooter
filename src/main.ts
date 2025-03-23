@@ -302,12 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Make sure username input works properly on mobile
   const usernameInput = document.getElementById('username-input') as HTMLInputElement
   if (usernameInput) {
-    // Prevent default touch behavior that might interfere with input
-    usernameInput.addEventListener('touchstart', (e) => {
-      e.stopPropagation() // Don't prevent default to allow focus
-    }, { passive: true })
+    // Remove touchstart handler that might be preventing input
+    usernameInput.removeEventListener('touchstart', () => {})
     
-    // Add specific handler for input focus
+    // Add specific handler for input focus with improved mobile support
     usernameInput.addEventListener('focus', () => {
       // On mobile, ensure the input is visible when keyboard appears
       setTimeout(() => {
@@ -323,6 +321,18 @@ document.addEventListener('DOMContentLoaded', () => {
     usernameInput.addEventListener('input', () => {
       console.log('Username input value changed:', usernameInput.value)
     })
+    
+    // Mobile specific fixes
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+      // Fix iOS focus issues
+      usernameInput.addEventListener('touchend', (e) => {
+        // Prevent default only for the input element
+        e.preventDefault()
+        
+        // Explicitly focus the input
+        usernameInput.focus()
+      }, false)
+    }
     
     // Enhance keyboard appearance on mobile
     usernameInput.setAttribute('autocomplete', 'off')
