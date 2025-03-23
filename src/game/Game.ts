@@ -85,13 +85,8 @@ export class Game {
     // Setup event listeners
     this.setupEventListeners();
     
-    // Enable pointer lock for desktop
+    // Enable pointer lock for all devices
     this.inputController.initPointerLock(this.renderer.domElement);
-    
-    // Setup touch controls for mobile
-    if (this.inputController.isMobile) {
-      this.setupMobileControls();
-    }
     
     // Start animation loop (but don't start the game yet)
     this.animate();
@@ -292,38 +287,18 @@ export class Game {
         // Update zombie manager
         this.zombieManager.update(deltaTime);
         
-        // Check if player is shooting with mouse - ONLY if pointer lock is established
-        if (!this.inputController.isMobile && 
-            this.inputController.pointerLockEstablished && 
+        // Check if player is shooting with mouse - for all devices
+        if (this.inputController.pointerLockEstablished && 
             this.inputController.mouseButtons.left) {
           if (!this.isPlayerShooting) {
             this.startShooting();
             this.isPlayerShooting = true;
           }
-        } else if (!this.inputController.isMobile && !this.inputController.mouseButtons.left) {
+        } else if (!this.inputController.mouseButtons.left) {
           if (this.isPlayerShooting) {
             this.stopShooting();
             this.isPlayerShooting = false;
           }
-        }
-        
-        // On mobile, use touch movement for aiming
-        if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
-          // Use same sensitivity regardless of environment
-          const MOBILE_SENSITIVITY = 0.08; // Increased from 0.025 to 0.08
-          
-          // Normalize for frame rate (target 60fps)
-          const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x
-          
-          // Update player rotation based on touch movement
-          this.player.updateRotation(
-            this.inputController.mouseMovementX * MOBILE_SENSITIVITY / frameRateAdjust,
-            this.inputController.mouseMovementY * MOBILE_SENSITIVITY / frameRateAdjust
-          );
-          
-          // Immediately reset the movement values after applying to prevent drift
-          this.inputController.mouseMovementX = 0;
-          this.inputController.mouseMovementY = 0;
         }
         
         // Check for melee combat (only if player is out of ammo)
@@ -655,7 +630,7 @@ export class Game {
     // Reset clock to avoid large deltaTime on first update
     this.clock = new THREE.Clock();
     
-    // Re-enable pointer lock for desktop with a slight delay
+    // Re-enable pointer lock for all devices with a slight delay
     if (!this.inputController.isMobile) {
       console.log("Attempting to re-enable pointer lock");
       setTimeout(() => {
@@ -712,43 +687,10 @@ export class Game {
   }
   
   /**
-   * Setup mobile-specific touch controls
+   * Setup touch controls for pointer lock
    */
   setupMobileControls(): void {
-    // Get renderer element
-    const renderer = this.renderer.domElement;
-    
-    // Add touch event listeners to the main game area for shooting
-    // This enables touch-to-shoot anywhere on the right side of the screen
-    renderer.addEventListener('touchstart', (e: TouchEvent) => {
-      e.preventDefault();
-      
-      // Check if the touch is on the right side of the screen
-      // This avoids interfering with the scrolling controls
-      const touch = e.touches[0];
-      if (touch.clientX > window.innerWidth / 2) {
-        this.startShooting();
-      }
-    });
-    
-    renderer.addEventListener('touchend', (e: TouchEvent) => {
-      e.preventDefault();
-      this.stopShooting();
-    });
-    
-    // Make mobile controls visible
-    const mobileControls = document.getElementById('mobile-controls');
-    if (mobileControls) {
-      mobileControls.style.display = 'block';
-      
-      // Update mobile instructions text
-      const mobileInstructions = document.getElementById('mobile-instructions');
-      if (mobileInstructions) {
-        mobileInstructions.innerHTML = `
-          <p>Left: Scroll to aim</p>
-          <p>Right: Tap to shoot</p>
-        `;
-      }
-    }
+    // This method is now empty since we're using the same approach for all devices
+    // We'll keep it for compatibility but it doesn't do anything specific anymore
   }
 } 

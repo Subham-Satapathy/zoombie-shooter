@@ -6,7 +6,6 @@ import * as THREE from 'three';
 export class InputController {
   keys: { [key: string]: boolean };
   mousePosition: THREE.Vector2;
-  isMobile: boolean;
   joystickPosition: THREE.Vector2;
   joystickActive: boolean;
   mouseButtons: { left: boolean };
@@ -14,8 +13,7 @@ export class InputController {
   pointerLockEstablished: boolean = false;
   mouseMovementX: number = 0;
   mouseMovementY: number = 0;
-  private lastTouchX: number = 0;
-  private lastTouchY: number = 0;
+  isMobile: boolean;
   
   constructor() {
     this.keys = {};
@@ -41,91 +39,76 @@ export class InputController {
       this.keys[e.code] = false;
     });
     
-    // Mouse events for desktop
-    if (!this.isMobile) {
-      window.addEventListener('mousemove', (e) => {
-        this.mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
-        this.mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
-      });
-      
-      // Add mouse button events
-      window.addEventListener('mousedown', (e) => {
-        if (e.button === 0) { // Left mouse button
-          this.mouseButtons.left = true;
-        }
-      });
-      
-      window.addEventListener('mouseup', (e) => {
-        if (e.button === 0) { // Left mouse button
-          this.mouseButtons.left = false;
-        }
-      });
-    } else {
-      // Mobile touch-based scroll controls
+    // Mouse events for all devices
+    window.addEventListener('mousemove', (e) => {
+      this.mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this.mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+    
+    // Add mouse button events
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Left mouse button
+        this.mouseButtons.left = true;
+      }
+    });
+    
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 0) { // Left mouse button
+        this.mouseButtons.left = false;
+      }
+    });
+    
+    // For mobile, add touch events that simulate mouse behavior
+    if (this.isMobile) {
       const gameContainer = document.getElementById('game-container');
       
       if (gameContainer) {
+        // Touch start simulates mousedown
         gameContainer.addEventListener('touchstart', (e) => {
-          // Only capture touchstart on the left side of the screen
-          if (e.touches[0].clientX < window.innerWidth / 2) {
-            e.preventDefault();
-            this.lastTouchX = e.touches[0].clientX;
-            this.lastTouchY = e.touches[0].clientY;
+          e.preventDefault();
+          this.mouseButtons.left = true;
+          
+          // Map touch position to mouse position
+          if (e.touches.length > 0) {
+            this.mousePosition.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+            this.mousePosition.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
           }
         }, { passive: false });
         
+        // Touch move simulates mousemove
         gameContainer.addEventListener('touchmove', (e) => {
-          // Only handle touchmove on the left side of the screen
-          if (e.touches[0].clientX < window.innerWidth / 2) {
-            e.preventDefault();
-            const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
+          e.preventDefault();
+          
+          // Map touch position to mouse position
+          if (e.touches.length > 0) {
+            const newX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+            const newY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
             
-            // Only process movement if we have initial touch coordinates
-            if (this.lastTouchX !== 0 && this.lastTouchY !== 0) {
-              // Calculate delta movement
-              const deltaX = touchX - this.lastTouchX;
-              const deltaY = touchY - this.lastTouchY;
-              
-              // Make sensitivity dependent on environment (hosted vs local)
-              const isLocalHost = window.location.hostname === 'localhost' || 
-                                  window.location.hostname === '127.0.0.1';
-              const environmentFactor = isLocalHost ? 1.0 : 0.6; // Reduce sensitivity on hosted domain
-              
-              // Only apply movement if there's a significant change to avoid drift
-              if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
-                // Update rotation values based on touch movement - with improved sensitivity
-                this.mouseMovementX = deltaX * 3.0 * environmentFactor; // Increased from 1.5 to 3.0
-                this.mouseMovementY = deltaY * 3.0 * environmentFactor; // Increased from 1.5 to 3.0
-              } else {
-                // Reset for small movements to prevent drift
-                this.mouseMovementX = 0;
-                this.mouseMovementY = 0;
-              }
-            }
+            // Calculate movement deltas (similar to what pointer lock provides)
+            this.mouseMovementX = (newX - this.mousePosition.x) * window.innerWidth * 0.5;
+            this.mouseMovementY = (newY - this.mousePosition.y) * window.innerHeight * 0.5;
             
-            // Store current position for next move
-            this.lastTouchX = touchX;
-            this.lastTouchY = touchY;
+            // Update current position
+            this.mousePosition.x = newX;
+            this.mousePosition.y = newY;
           }
         }, { passive: false });
         
-        gameContainer.addEventListener('touchend', () => {
-          // Reset movement immediately to stop any continued rotation
+        // Touch end simulates mouseup
+        gameContainer.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          this.mouseButtons.left = false;
           this.mouseMovementX = 0;
           this.mouseMovementY = 0;
-          // Also reset the last touch positions to prevent jumps on next touch
-          this.lastTouchX = 0;
-          this.lastTouchY = 0;
-        });
+        }, { passive: false });
         
-        gameContainer.addEventListener('touchcancel', () => {
-          // Also handle touch cancel events
+        // Touch cancel
+        gameContainer.addEventListener('touchcancel', (e) => {
+          e.preventDefault();
+          this.mouseButtons.left = false;
           this.mouseMovementX = 0;
           this.mouseMovementY = 0;
-          this.lastTouchX = 0;
-          this.lastTouchY = 0;
-        });
+        }, { passive: false });
       }
     }
   }
@@ -143,19 +126,9 @@ export class InputController {
   getMovementDirection(): THREE.Vector3 {
     const direction = new THREE.Vector3(0, 0, 0);
     
-    // On mobile, we just use simple automatic movement forward
-    if (this.isMobile) {
-      direction.x = 0;  // No left-right movement on mobile
-      direction.z = -1; // Always move forward slowly
-      return direction;
-    }
-    
-    // Desktop controls - only allow left/right movement
+    // Desktop controls for all devices
     if (this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft')) direction.x = -1;
     if (this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight')) direction.x = 1;
-    // Forward/backward movement disabled for desktop
-    // if (this.isKeyPressed('KeyW') || this.isKeyPressed('ArrowUp')) direction.z = -1;
-    // if (this.isKeyPressed('KeyS') || this.isKeyPressed('ArrowDown')) direction.z = 1;
     
     // Normalize the direction vector
     if (direction.lengthSq() > 0) {
@@ -174,23 +147,23 @@ export class InputController {
   
   /**
    * Initialize pointer lock for desktop aiming
+   * Note: Pointer lock might not work on all mobile browsers, 
+   * but we'll try to use it for a unified experience
    */
   initPointerLock(element: HTMLElement): void {
-    if (!this.isMobile) {
-      element.requestPointerLock = element.requestPointerLock || 
-                                  (element as any).mozRequestPointerLock || 
-                                  (element as any).webkitRequestPointerLock;
-      
-      // Pointer lock change event
-      document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this), false);
-      document.addEventListener('mozpointerlockchange', this.onPointerLockChange.bind(this), false);
-      document.addEventListener('webkitpointerlockchange', this.onPointerLockChange.bind(this), false);
-      
-      // Pointer lock error event
-      document.addEventListener('pointerlockerror', this.onPointerLockError.bind(this), false);
-      document.addEventListener('mozpointerlockerror', this.onPointerLockError.bind(this), false);
-      document.addEventListener('webkitpointerlockerror', this.onPointerLockError.bind(this), false);
-    }
+    element.requestPointerLock = element.requestPointerLock || 
+                                (element as any).mozRequestPointerLock || 
+                                (element as any).webkitRequestPointerLock;
+    
+    // Pointer lock change event
+    document.addEventListener('pointerlockchange', this.onPointerLockChange.bind(this), false);
+    document.addEventListener('mozpointerlockchange', this.onPointerLockChange.bind(this), false);
+    document.addEventListener('webkitpointerlockchange', this.onPointerLockChange.bind(this), false);
+    
+    // Pointer lock error event
+    document.addEventListener('pointerlockerror', this.onPointerLockError.bind(this), false);
+    document.addEventListener('mozpointerlockerror', this.onPointerLockError.bind(this), false);
+    document.addEventListener('webkitpointerlockerror', this.onPointerLockError.bind(this), false);
   }
   
   /**

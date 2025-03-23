@@ -120,7 +120,7 @@ export class Player {
   update(deltaTime: number): void {
     if (this.isDead) return;
     
-    // Get movement direction from input controller (but we'll ignore it to prevent movement)
+    // Get movement direction from input controller
     this.inputController.getMovementDirection();
     
     // DISABLED: No horizontal movement allowed, player is stationary
@@ -136,10 +136,10 @@ export class Player {
                          window.location.hostname === '127.0.0.1';
     const environmentFactor = isLocalHost ? 1.0 : 0.6; // Reduce sensitivity on hosted domain
     
-    // Handle both mobile and non-mobile rotation
+    // Handle rotation for all devices
     if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
-      // Desktop sensitivity is intentionally much lower than mobile (0.05)
-      const DESKTOP_SENSITIVITY = 0.0004 * environmentFactor;
+      // Use same sensitivity for all devices, with environment factor
+      const SENSITIVITY = 0.0008 * environmentFactor;
       
       // Normalize for frame rate (target 60fps)
       const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x
@@ -147,14 +147,14 @@ export class Player {
       // Horizontal rotation (around Y axis)
       if (this.inputController.mouseMovementX !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.x -= this.inputController.mouseMovementX * DESKTOP_SENSITIVITY / frameRateAdjust;
+        this.rotationVelocity.x -= this.inputController.mouseMovementX * SENSITIVITY / frameRateAdjust;
         rotationChanged = true;
       }
       
       // Vertical rotation (around X axis)
       if (this.inputController.mouseMovementY !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.y -= this.inputController.mouseMovementY * DESKTOP_SENSITIVITY / frameRateAdjust;
+        this.rotationVelocity.y -= this.inputController.mouseMovementY * SENSITIVITY / frameRateAdjust;
         rotationChanged = true;
       }
       
@@ -185,16 +185,12 @@ export class Player {
       rotationChanged = true;
     }
     
-    // Special handling for non-mobile input
-    if (!this.inputController.isMobile) {
-      // If no pointer movement but mouse button is pressed, force an initial rotation
-      // This helps make the gun pointer responsive immediately
-      if (!rotationChanged && this.inputController.mouseButtons.left) {
-        // Apply a tiny rotation to "wake up" the controls
-        this.rotation.y += 0.0001;
-        this.rotation.x += 0.0001;
-        rotationChanged = true;
-      }
+    // If mouse button is pressed, force an initial rotation to make gun pointer responsive
+    if (!rotationChanged && this.inputController.mouseButtons.left) {
+      // Apply a tiny rotation to "wake up" the controls
+      this.rotation.y += 0.0001;
+      this.rotation.x += 0.0001;
+      rotationChanged = true;
     }
     
     // Update weapon position based on rotation if rotation changed
@@ -478,46 +474,5 @@ export class Player {
     
     // Dispose of weapons
     this.weapons.forEach(weapon => weapon.dispose());
-  }
-  
-  /**
-   * Update the player's rotation directly
-   * Used for mobile touch controls
-   */
-  updateRotation(deltaX: number, deltaY: number): void {
-    if (this.isDead) return;
-    
-    // Only update if there's actual movement
-    if (deltaX !== 0 || deltaY !== 0) {
-      // Note: The sensitivity for this method is applied in Game.ts (MOBILE_SENSITIVITY)
-      // This method is ONLY called for mobile devices
-      
-      // Apply to rotation velocity instead of directly to rotation
-      // Horizontal rotation (around Y axis) - use deltaX
-      this.rotationVelocity.x -= deltaX;
-      
-      // Vertical rotation (around X axis) - use deltaY
-      this.rotationVelocity.y += -deltaY;
-      
-      // Apply rotation with inertia
-      this.rotation.y += this.rotationVelocity.x;
-      this.rotation.x += this.rotationVelocity.y;
-      
-      // Clamp vertical rotation to prevent looking too far up or down
-      this.rotation.x = MathUtils.clamp(this.rotation.x, -Math.PI / 4, Math.PI / 2);
-      
-      // Apply damping for smooth deceleration
-      this.rotationVelocity.x *= this.rotationDamping;
-      this.rotationVelocity.y *= this.rotationDamping;
-      
-      // Update camera and weapon position
-      this.updateCamera();
-      
-      // Update weapon position
-      const currentWeapon = this.getCurrentWeapon();
-      if (currentWeapon) {
-        currentWeapon.updatePosition(this.camera);
-      }
-    }
   }
 }

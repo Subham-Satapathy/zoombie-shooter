@@ -41,10 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.getElementById('game-container') as HTMLElement
     gameContainer?.focus()
     
-    // If on desktop, request pointer lock
-    if (!game.inputController.isMobile) {
-      game.renderer.domElement.requestPointerLock()
-    }
+    // Request pointer lock for all devices
+    game.renderer.domElement.requestPointerLock()
   })
   
   // Setup view leaderboard button
@@ -141,21 +139,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const reloadBtn = document.getElementById('reload-btn') as HTMLElement
   const weaponSwitchBtn = document.getElementById('weapon-switch-btn') as HTMLElement
   
-  // Use touchstart/touchend instead of pointerdown/pointerup for better mobile response
-  if (game.inputController.isMobile) {
-    shootBtn?.addEventListener('touchstart', (e) => {
-      e.preventDefault()
-      game.startShooting()
-    })
-    shootBtn?.addEventListener('touchend', (e) => {
-      e.preventDefault()
-      game.stopShooting()
-    })
-  } else {
-    shootBtn?.addEventListener('pointerdown', () => game.startShooting())
-    shootBtn?.addEventListener('pointerup', () => game.stopShooting())
-    shootBtn?.addEventListener('pointerleave', () => game.stopShooting())
-  }
+  // Use both touch and pointer events for all devices
+  shootBtn?.addEventListener('touchstart', (e) => {
+    e.preventDefault()
+    game.startShooting()
+  })
+  shootBtn?.addEventListener('touchend', (e) => {
+    e.preventDefault()
+    game.stopShooting()
+  })
+  
+  shootBtn?.addEventListener('pointerdown', () => game.startShooting())
+  shootBtn?.addEventListener('pointerup', () => game.stopShooting())
+  shootBtn?.addEventListener('pointerleave', () => game.stopShooting())
   
   reloadBtn?.addEventListener('click', () => game.reload())
   weaponSwitchBtn?.addEventListener('click', () => game.switchWeapon())
@@ -184,9 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add a click handler on the game container to re-establish pointer lock
   const gameContainer = document.getElementById('game-container') as HTMLElement
   gameContainer?.addEventListener('click', () => {
-    // Only request pointer lock if game is running and we're not on mobile
-    // And only if pointer lock isn't already active
-    if (game.isRunning && !game.inputController.isMobile && 
+    // Request pointer lock if it's not already active and the game is running
+    if (game.isRunning && 
         !document.pointerLockElement && 
         document.getElementById('game-over')?.classList.contains('hidden') &&
         document.getElementById('start-screen')?.classList.contains('hidden')) {
