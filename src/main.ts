@@ -265,9 +265,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add touch event for mobile devices
     submitScoreBtn.addEventListener('touchstart', (e) => {
       e.preventDefault()
+      e.stopPropagation() // Prevent event bubbling
       const usernameInput = document.getElementById('username-input') as HTMLInputElement
       game.submitScore(usernameInput.value)
-    })
+    }, { passive: false }) // Ensure the preventDefault works
+    
+    // Also add touchend as backup
+    submitScoreBtn.addEventListener('touchend', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const usernameInput = document.getElementById('username-input') as HTMLInputElement
+      game.submitScore(usernameInput.value)
+    }, { passive: false })
   }
   
   // Make sure username input works properly on mobile
@@ -276,7 +285,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Prevent default touch behavior that might interfere with input
     usernameInput.addEventListener('touchstart', (e) => {
       e.stopPropagation() // Don't prevent default to allow focus
-    })
+    }, { passive: true })
+    
+    // Enhance keyboard appearance on mobile
+    usernameInput.setAttribute('autocomplete', 'off')
+    usernameInput.setAttribute('autocorrect', 'off')
+    usernameInput.setAttribute('autocapitalize', 'off')
+    usernameInput.setAttribute('spellcheck', 'false')
     
     // Make sure to focus the input when touched
     usernameInput.addEventListener('focus', () => {
@@ -284,6 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // when the keyboard appears
       setTimeout(() => {
         usernameInput.scrollIntoView({behavior: 'smooth'})
+        
+        // Force redraw to ensure input is visible
+        document.body.style.opacity = '0.99'
+        setTimeout(() => document.body.style.opacity = '1', 10)
       }, 300)
     })
   }

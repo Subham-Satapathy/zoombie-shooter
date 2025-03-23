@@ -545,6 +545,8 @@ export class Game {
    * Submit score to leaderboard
    */
   async submitScore(username: string): Promise<void> {
+    console.log('submitScore method called with username:', username);
+    
     if (username.trim().length === 0) {
       alert('Please enter a username');
       return;
