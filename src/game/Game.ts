@@ -146,6 +146,11 @@ export class Game {
       const scoreElement = document.getElementById('score-display');
       if (scoreElement) {
         scoreElement.textContent = `Score: ${this.score}`;
+        
+        // Force a repaint to ensure visibility on mobile
+        scoreElement.style.display = 'none';
+        scoreElement.offsetHeight; // Trigger reflow
+        scoreElement.style.display = '';
       }
       
       // Chance to drop ammo
@@ -224,6 +229,17 @@ export class Game {
   handleWaveComplete(waveNumber: number): void {
     // Reward: bonus score
     this.score += waveNumber * 100;
+    
+    // Update score display
+    const scoreElement = document.getElementById('score-display');
+    if (scoreElement) {
+      scoreElement.textContent = `Score: ${this.score}`;
+      
+      // Force a repaint to ensure visibility on mobile
+      scoreElement.style.display = 'none';
+      scoreElement.offsetHeight; // Trigger reflow
+      scoreElement.style.display = '';
+    }
     
     // Every few waves, give a new weapon
     if (waveNumber % 3 === 0) {

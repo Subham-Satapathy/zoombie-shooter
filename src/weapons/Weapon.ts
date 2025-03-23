@@ -482,6 +482,11 @@ export class Weapon {
       } else {
         ammoCounter.style.color = 'var(--secondary-color)';
       }
+      
+      // Force a repaint to ensure visibility on mobile
+      ammoCounter.style.display = 'none';
+      ammoCounter.offsetHeight; // Trigger reflow
+      ammoCounter.style.display = '';
     }
   }
   

@@ -254,6 +254,11 @@ export class ZombieManager extends THREE.Object3D {
     const waveIndicator = document.getElementById('wave-indicator');
     if (waveIndicator) {
       waveIndicator.textContent = `Wave: ${this.currentWave}`;
+      
+      // Force a repaint to ensure visibility on mobile
+      waveIndicator.style.display = 'none';
+      waveIndicator.offsetHeight; // Trigger reflow
+      waveIndicator.style.display = '';
     }
   }
   

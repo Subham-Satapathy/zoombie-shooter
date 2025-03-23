@@ -466,8 +466,9 @@ body {
     padding: 8px 12px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
-    position: fixed;
+    position: absolute;
     font-weight: bold;
+    z-index: 20;
   }
   
   #health-bar {
@@ -478,9 +479,10 @@ body {
     right: auto;
     transform: none;
     height: 22px;
-    position: fixed;
+    position: absolute;
     background-color: #1a1a1a;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 20;
   }
   
   #health-fill {
@@ -494,7 +496,7 @@ body {
   
   #ammo-counter {
     font-size: 14px;
-    position: fixed;
+    position: absolute;
     top: 77px;
     left: 10px;
     right: auto;
@@ -505,6 +507,7 @@ body {
     border-radius: 8px;
     color: #e76f51;
     font-weight: bold;
+    z-index: 20;
   }
   
   #score-display {
@@ -518,8 +521,9 @@ body {
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     color: #2a9d8f;
-    position: fixed;
+    position: absolute;
     font-weight: bold;
+    z-index: 20;
   }
   
   #action-buttons {
