@@ -457,8 +457,25 @@ body {
   }
   
   #wave-indicator {
-    font-size: 16px;
-    top: 60px; /* Move down to avoid notches */
+    font-size: 14px;
+    top: 10px;
+    left: 10px;
+    padding: 3px 8px;
+  }
+  
+  #ammo-counter {
+    font-size: 14px;
+    top: 10px;
+    right: 10px;
+    left: auto;
+    padding: 3px 8px;
+  }
+  
+  #score-display {
+    font-size: 14px;
+    top: 45px;
+    left: 10px;
+    padding: 3px 8px;
   }
   
   #health-bar {
