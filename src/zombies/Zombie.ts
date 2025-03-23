@@ -87,7 +87,7 @@ export class Zombie {
         return {
           health: 100,
           damage: 10,
-          moveSpeed: 2,
+          moveSpeed: 1.2,
           attackRange: 5.0,
           attackCooldown: 1.5,
           detectionRange: 15,
@@ -100,7 +100,7 @@ export class Zombie {
         return {
           health: 70,
           damage: 8,
-          moveSpeed: 4,
+          moveSpeed: 2.4,
           attackRange: 4.8,
           attackCooldown: 1.0,
           detectionRange: 20,
@@ -113,7 +113,7 @@ export class Zombie {
         return {
           health: 250,
           damage: 25,
-          moveSpeed: 1.5,
+          moveSpeed: 0.9,
           attackRange: 5.5,
           attackCooldown: 2.0,
           detectionRange: 12,
