@@ -241,9 +241,10 @@ export class Player {
     if (this.isDead) return;
     
     // Check if player is in invincibility period after previous damage
+    // But use a much shorter period to allow multiple zombies to deal damage
     const currentTime = Date.now();
-    if (currentTime - this.lastDamageTime < this.damageInvincibilityTime) {
-      console.log(`🛡️ Player is invincible, damage blocked!`);
+    if (currentTime - this.lastDamageTime < 100) { // Reduced from 750ms to 100ms
+      console.log(`🛡️ Player briefly invincible, damage blocked!`);
       return;
     }
     
@@ -255,10 +256,7 @@ export class Player {
     // Log damage details
     console.log(`⚡ Player taking damage: ${cappedDamage}, current health: ${this.health}`);
     
-    // Shorter invincibility time to allow more frequent damage from multiple zombies
-    this.damageInvincibilityTime = 750; // 0.75 seconds
-    
-    // Set last damage time for invincibility period
+    // Set last damage time for very short invincibility period
     this.lastDamageTime = currentTime;
     
     this.health -= cappedDamage;
