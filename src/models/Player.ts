@@ -131,22 +131,30 @@ export class Player {
     
     let rotationChanged = false;
     
+    // Make sensitivity dependent on environment (hosted vs local)
+    const isLocalHost = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1';
+    const environmentFactor = isLocalHost ? 1.0 : 0.6; // Reduce sensitivity on hosted domain
+    
     // Handle both mobile and non-mobile rotation
     if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
       // Desktop sensitivity is intentionally much lower than mobile (0.05)
-      const DESKTOP_SENSITIVITY = 0.0008;
+      const DESKTOP_SENSITIVITY = 0.0008 * environmentFactor;
+      
+      // Normalize for frame rate (target 60fps)
+      const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x
       
       // Horizontal rotation (around Y axis)
       if (this.inputController.mouseMovementX !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.x -= this.inputController.mouseMovementX * DESKTOP_SENSITIVITY;
+        this.rotationVelocity.x -= this.inputController.mouseMovementX * DESKTOP_SENSITIVITY / frameRateAdjust;
         rotationChanged = true;
       }
       
       // Vertical rotation (around X axis)
       if (this.inputController.mouseMovementY !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.y -= this.inputController.mouseMovementY * DESKTOP_SENSITIVITY;
+        this.rotationVelocity.y -= this.inputController.mouseMovementY * DESKTOP_SENSITIVITY / frameRateAdjust;
         rotationChanged = true;
       }
       
