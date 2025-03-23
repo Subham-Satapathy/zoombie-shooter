@@ -30,6 +30,8 @@ body {
   align-items: center;
   touch-action: none; /* Prevent browser handling of all touch actions */
   -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+  -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+  overscroll-behavior: none; /* Prevent overscroll effects */
 }
 
 #ui-overlay {
@@ -445,6 +447,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 0 20px;
+    bottom: 30px; /* Move up to avoid gesture controls on newer devices */
   }
   
   #mobile-instructions {
@@ -453,15 +456,30 @@ body {
   
   #wave-indicator {
     font-size: 16px;
+    top: 60px; /* Move down to avoid notches */
   }
   
   #health-bar {
     width: 200px;
-    top: 10px;
+    top: 20px;
+  }
+  
+  #action-buttons {
+    position: fixed; /* Use fixed positioning for better performance */
+    bottom: 20px;
+    right: 20px;
+    z-index: 15; /* Ensure it's above other elements */
+  }
+  
+  #action-buttons button {
+    /* Use hardware acceleration for better performance */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
   }
   
   #action-buttons button:active {
-    transform: scale(0.95);
+    transform: scale(0.95) translateZ(0);
     opacity: 0.8;
   }
 }

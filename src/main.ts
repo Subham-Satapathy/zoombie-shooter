@@ -8,8 +8,46 @@ declare global {
   }
 }
 
+// Helper function to optimize mobile performance
+const optimizeMobilePerformance = () => {
+  // Check if the device is mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  
+  if (isMobile) {
+    // Lower the quality of effects for mobile
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+      /* Lower quality settings for better performance on mobile */
+      .blood-spatter, .damage-flash {
+        opacity: 0.5 !important;
+        transition: none !important; 
+      }
+      
+      /* Simplify animations */
+      @keyframes simplified-pulse {
+        0% { opacity: 0.7; }
+        100% { opacity: 0.9; }
+      }
+      
+      .health-critical #health-fill {
+        animation: simplified-pulse 0.8s alternate infinite !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    // Force the game to run in first-person mode for better performance
+    // We'll update this in the game initialization
+    
+    // Disable unnecessary effects
+    document.body.classList.add('mobile-optimized');
+  }
+};
+
 // Initialize the game once the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  // Apply mobile performance optimizations
+  optimizeMobilePerformance();
+
   // Remove any existing pointer-lock blocker elements from previous versions
   const existingBlocker = document.getElementById('pointer-lock-blocker');
   if (existingBlocker) {

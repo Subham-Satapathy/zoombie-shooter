@@ -77,7 +77,11 @@ export class InputController {
         
         // Touch move simulates mousemove
         gameContainer.addEventListener('touchmove', (e) => {
-          e.preventDefault();
+          // Don't prevent default scrolling for the entire document
+          // Only prevent default for the game area to allow scrolling elsewhere
+          if (e.target === gameContainer || gameContainer.contains(e.target as Node)) {
+            e.preventDefault();
+          }
           
           // Map touch position to mouse position
           if (e.touches.length > 0) {
@@ -85,8 +89,10 @@ export class InputController {
             const newY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
             
             // Calculate movement deltas (similar to what pointer lock provides)
-            this.mouseMovementX = (newX - this.mousePosition.x) * window.innerWidth * 0.5;
-            this.mouseMovementY = (newY - this.mousePosition.y) * window.innerHeight * 0.5;
+            // Increase the sensitivity for mobile devices
+            const sensitivity = 1.5; 
+            this.mouseMovementX = (newX - this.mousePosition.x) * window.innerWidth * sensitivity;
+            this.mouseMovementY = (newY - this.mousePosition.y) * window.innerHeight * sensitivity;
             
             // Update current position
             this.mousePosition.x = newX;
