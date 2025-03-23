@@ -49,7 +49,6 @@ export class Player {
   
   // Add new property for invincibility after taking damage
   private lastDamageTime: number = 0;
-  private damageInvincibilityTime: number = 1000; // 1 second of invincibility after taking damage
   
   constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera, inputController: InputController) {
     this.scene = scene;
