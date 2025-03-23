@@ -660,6 +660,14 @@ export class Game {
       startScreen.classList.add('hidden');
     }
     
+    // Hide mobile instructions on mobile devices
+    if (this.inputController.isMobile) {
+      const mobileInstructions = document.getElementById('mobile-instructions');
+      if (mobileInstructions) {
+        mobileInstructions.style.display = 'none';
+      }
+    }
+    
     // Reset username input
     const usernameInput = document.getElementById('username-input') as HTMLInputElement;
     if (usernameInput) {
@@ -676,16 +684,23 @@ export class Game {
     // Reset clock to avoid large deltaTime on first update
     this.clock = new THREE.Clock();
     
-    // Re-enable pointer lock for all devices with a slight delay
+    // Reset pointer lock state in the input controller
     if (!this.inputController.isMobile) {
-      console.log("Attempting to re-enable pointer lock");
+      // Reset pointer lock flags in the input controller
+      this.inputController.pointerLockEstablished = false;
+      this.inputController.pointerLockJustInitialized = false;
+      
+      // Request pointer lock immediately (as we're in a user gesture context)
+      console.log("Requesting pointer lock immediately");
+      this.renderer.domElement.requestPointerLock();
+      
+      // Also set a backup request with delay in case the immediate request fails
       setTimeout(() => {
-        // Request pointer lock on the renderer's canvas
         if (!document.pointerLockElement) {
-          console.log("Requesting pointer lock");
+          console.log("Backup pointer lock request");
           this.renderer.domElement.requestPointerLock();
         }
-      }, 200);
+      }, 500);
     }
     
     console.log("Starting game again");
