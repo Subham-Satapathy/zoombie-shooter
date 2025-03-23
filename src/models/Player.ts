@@ -248,10 +248,16 @@ export class Player {
     }
     
     // Cap damage to prevent instant deaths
-    const cappedDamage = Math.min(amount, 30); // Increased from 20 to allow for higher swarm damage
+    // Allow higher damage cap for swarm attacks (detected by higher amount values)
+    const isSwarmAttack = amount > 15; // If damage is higher than 15, it's likely from multiple zombies
+    const damageCap = isSwarmAttack ? 50 : 30; // Higher cap for swarm attacks
+    const cappedDamage = Math.min(amount, damageCap);
     
     // Log damage details
-    console.log(`⚡ Player taking damage: ${cappedDamage}, current health: ${this.health}`);
+    console.log(`⚡ Player taking damage: ${cappedDamage}, current health: ${this.health} (Swarm attack: ${isSwarmAttack})`);
+    
+    // Reduce invincibility time for swarm attacks to allow zombies to deal damage more frequently
+    this.damageInvincibilityTime = isSwarmAttack ? 500 : 1000; // 0.5s for swarms, 1s for normal attacks
     
     // Set last damage time for invincibility period
     this.lastDamageTime = currentTime;

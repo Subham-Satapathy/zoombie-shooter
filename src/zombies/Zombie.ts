@@ -1193,8 +1193,8 @@ export class Zombie {
     let adjustedDamage = Math.min(this.properties.damage, 10); // Cap base damage to prevent one-hit kills
     
     // Increase damage based on how many zombies are nearby
-    // Each nearby zombie increases damage by 10% up to a maximum of 3x damage
-    const multiplier = Math.min(3.0, 1 + (nearbyZombiesCount * 0.1));
+    // Each nearby zombie increases damage by 20% up to a maximum of 5x damage
+    const multiplier = Math.min(5.0, 1 + (nearbyZombiesCount * 0.2));
     adjustedDamage = Math.ceil(adjustedDamage * multiplier);
     
     console.log(`💥 Attacked player with ${nearbyZombiesCount} nearby zombies for ${adjustedDamage} damage (x${multiplier.toFixed(1)} multiplier)`);
