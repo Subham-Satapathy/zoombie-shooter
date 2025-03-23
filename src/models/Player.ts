@@ -133,17 +133,20 @@ export class Player {
     
     // Handle both mobile and non-mobile rotation
     if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
+      // Desktop sensitivity is intentionally much lower than mobile (0.05)
+      const DESKTOP_SENSITIVITY = 0.0008;
+      
       // Horizontal rotation (around Y axis)
       if (this.inputController.mouseMovementX !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.x -= this.inputController.mouseMovementX * 0.002;
+        this.rotationVelocity.x -= this.inputController.mouseMovementX * DESKTOP_SENSITIVITY;
         rotationChanged = true;
       }
       
       // Vertical rotation (around X axis)
       if (this.inputController.mouseMovementY !== 0) {
         // Apply rotation to velocity for inertia, not directly to rotation
-        this.rotationVelocity.y -= this.inputController.mouseMovementY * 0.002;
+        this.rotationVelocity.y -= this.inputController.mouseMovementY * DESKTOP_SENSITIVITY;
         rotationChanged = true;
       }
       
@@ -478,6 +481,9 @@ export class Player {
     
     // Only update if there's actual movement
     if (deltaX !== 0 || deltaY !== 0) {
+      // Note: The sensitivity for this method is applied in Game.ts (MOBILE_SENSITIVITY)
+      // This method is ONLY called for mobile devices
+      
       // Apply to rotation velocity instead of directly to rotation
       // Horizontal rotation (around Y axis) - use deltaX
       this.rotationVelocity.x -= deltaX;

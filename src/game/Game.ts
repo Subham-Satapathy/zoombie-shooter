@@ -284,10 +284,13 @@ export class Game {
         
         // On mobile, use touch movement for aiming
         if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
+          // Mobile sensitivity is intentionally much higher than desktop (0.0008)
+          const MOBILE_SENSITIVITY = 0.05;
+          
           // Update player rotation based on touch movement
           this.player.updateRotation(
-            this.inputController.mouseMovementX * 0.05, // Increased sensitivity from 0.02 to 0.05
-            this.inputController.mouseMovementY * 0.05  // Increased sensitivity from 0.02 to 0.05
+            this.inputController.mouseMovementX * MOBILE_SENSITIVITY,
+            this.inputController.mouseMovementY * MOBILE_SENSITIVITY
           );
           
           // Immediately reset the movement values after applying to prevent drift
