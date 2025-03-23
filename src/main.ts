@@ -235,6 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Game over UI
   const restartGameBtn = document.getElementById('restart-game') as HTMLElement
   const submitScoreBtn = document.getElementById('submit-score') as HTMLElement
+  const usernameForm = document.getElementById('username-form') as HTMLElement
+  
+  // Add form submission handler
+  if (usernameForm) {
+    usernameForm.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const usernameInput = document.getElementById('username-input') as HTMLInputElement
+      game.submitScore(usernameInput.value)
+    })
+  }
   
   // Add restart button event listener
   if (restartGameBtn) {
@@ -262,19 +272,29 @@ document.addEventListener('DOMContentLoaded', () => {
       game.submitScore(usernameInput.value)
     })
     
-    // Add touch event for mobile devices
+    // Improved touch event handling for mobile devices
     submitScoreBtn.addEventListener('touchstart', (e) => {
       e.preventDefault()
       e.stopPropagation() // Prevent event bubbling
-      const usernameInput = document.getElementById('username-input') as HTMLInputElement
-      game.submitScore(usernameInput.value)
-    }, { passive: false }) // Ensure the preventDefault works
+      
+      // Don't submit yet, just prevent default touch behavior
+    }, { passive: false }) // Ensure preventDefault works
     
-    // Also add touchend as backup
+    // Use touchend for actual submission (more reliable on mobile)
     submitScoreBtn.addEventListener('touchend', (e) => {
       e.preventDefault()
       e.stopPropagation()
+      
+      console.log('Submit score touchend triggered')
       const usernameInput = document.getElementById('username-input') as HTMLInputElement
+      
+      // Log the value being submitted for debugging
+      console.log('Username value:', usernameInput.value)
+      
+      // Ensure the element is unfocused to hide keyboard
+      usernameInput.blur()
+      
+      // Submit the score
       game.submitScore(usernameInput.value)
     }, { passive: false })
   }
@@ -287,24 +307,29 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation() // Don't prevent default to allow focus
     }, { passive: true })
     
+    // Add specific handler for input focus
+    usernameInput.addEventListener('focus', () => {
+      // On mobile, ensure the input is visible when keyboard appears
+      setTimeout(() => {
+        usernameInput.scrollIntoView({behavior: 'smooth', block: 'center'})
+        
+        // Force redraw to ensure input is visible with keyboard open
+        document.body.style.opacity = '0.99'
+        setTimeout(() => document.body.style.opacity = '1', 10)
+      }, 300)
+    })
+    
+    // Add input handler to track changes
+    usernameInput.addEventListener('input', () => {
+      console.log('Username input value changed:', usernameInput.value)
+    })
+    
     // Enhance keyboard appearance on mobile
     usernameInput.setAttribute('autocomplete', 'off')
     usernameInput.setAttribute('autocorrect', 'off')
     usernameInput.setAttribute('autocapitalize', 'off')
     usernameInput.setAttribute('spellcheck', 'false')
-    
-    // Make sure to focus the input when touched
-    usernameInput.addEventListener('focus', () => {
-      // On iOS, sometimes we need to scroll to make sure the input is visible
-      // when the keyboard appears
-      setTimeout(() => {
-        usernameInput.scrollIntoView({behavior: 'smooth'})
-        
-        // Force redraw to ensure input is visible
-        document.body.style.opacity = '0.99'
-        setTimeout(() => document.body.style.opacity = '1', 10)
-      }, 300)
-    })
+    usernameInput.setAttribute('inputmode', 'text')
   }
   
   // Add a click handler on the game container to re-establish pointer lock

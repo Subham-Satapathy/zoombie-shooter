@@ -547,13 +547,42 @@ export class Game {
   async submitScore(username: string): Promise<void> {
     console.log('submitScore method called with username:', username);
     
-    if (username.trim().length === 0) {
+    // Get the username input element
+    const usernameInput = document.getElementById('username-input') as HTMLInputElement;
+    const submitBtn = document.getElementById('submit-score');
+    
+    // Additional debugging for mobile
+    console.log('Input element value directly:', usernameInput?.value);
+    console.log('Input element exists:', !!usernameInput);
+    console.log('Submit button exists:', !!submitBtn);
+    
+    // Check if we should use the direct input value
+    // This helps in cases where browser autocomplete might not update
+    // the passed username value correctly
+    if ((!username || username.trim().length === 0) && usernameInput && usernameInput.value.trim().length > 0) {
+      console.log('Using direct input value instead of passed value');
+      username = usernameInput.value;
+    }
+    
+    if (!username || username.trim().length === 0) {
+      console.error('Empty username provided');
       alert('Please enter a username');
+      
+      // Refocus the input field
+      if (usernameInput) {
+        setTimeout(() => {
+          usernameInput.focus();
+          usernameInput.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }, 100);
+      }
       return;
     }
     
+    // Trim the username to remove any whitespace
+    username = username.trim();
+    console.log('Trimmed username:', username);
+    
     // Disable submit button during submission
-    const submitBtn = document.getElementById('submit-score');
     if (submitBtn) {
       submitBtn.setAttribute('disabled', 'disabled');
       submitBtn.textContent = 'Submitting...';
@@ -581,10 +610,9 @@ export class Game {
       const success = await this.dbService.submitScore(scoreEntry);
       
       if (success) {
-        // Disable submit button
+        // Update button text to show success
         if (submitBtn) {
-          submitBtn.setAttribute('disabled', 'disabled');
-          submitBtn.textContent = 'Submitted';
+          submitBtn.textContent = 'Score Submitted!';
         }
         
         // Refresh leaderboard

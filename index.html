@@ -62,10 +62,19 @@
         <h2>Game Over</h2>
         <div id="final-score"></div>
         <div id="leaderboard"></div>
-        <div id="username-form">
-          <input type="text" id="username-input" placeholder="Enter your username" maxlength="15" inputmode="text">
-          <button id="submit-score" type="button">Submit Score</button>
-        </div>
+        <form id="username-form" onsubmit="return false;">
+          <input 
+            type="text" 
+            id="username-input" 
+            placeholder="Enter your username" 
+            maxlength="15" 
+            inputmode="text"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false">
+          <button id="submit-score" type="submit">Submit Score</button>
+        </form>
         <button id="restart-game">Play Again</button>
       </div>
       
