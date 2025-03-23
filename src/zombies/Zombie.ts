@@ -88,7 +88,7 @@ export class Zombie {
           health: 100,
           damage: 10,
           moveSpeed: 2,
-          attackRange: 3.0,
+          attackRange: 5.0,
           attackCooldown: 1.5,
           detectionRange: 15,
           color: 0x6a994e,
@@ -101,7 +101,7 @@ export class Zombie {
           health: 70,
           damage: 8,
           moveSpeed: 4,
-          attackRange: 2.8,
+          attackRange: 4.8,
           attackCooldown: 1.0,
           detectionRange: 20,
           color: 0xbc4749,
@@ -114,7 +114,7 @@ export class Zombie {
           health: 250,
           damage: 25,
           moveSpeed: 1.5,
-          attackRange: 3.5,
+          attackRange: 5.5,
           attackCooldown: 2.0,
           detectionRange: 12,
           color: 0x283618,
@@ -1022,6 +1022,14 @@ export class Zombie {
    * Move zombie towards player
    */
   moveTowardsPlayer(deltaTime: number): void {
+    // Calculate distance to player
+    const distanceToPlayer = this.position.distanceTo(this.player.position);
+    
+    // Don't move if already in attack range
+    if (distanceToPlayer <= this.properties.attackRange) {
+      return;
+    }
+    
     // Calculate direction to player
     const direction = new THREE.Vector3();
     direction.subVectors(this.player.position, this.position).normalize();
@@ -1045,9 +1053,15 @@ export class Zombie {
     // Use a minimum move distance to ensure zombies always move
     const effectiveMoveDistance = Math.max(moveDistance, 0.01);
     
+    // If very close to attack range, slow down to avoid overshooting
+    const distanceToAttackRange = distanceToPlayer - this.properties.attackRange;
+    const adjustedMoveDistance = distanceToAttackRange < effectiveMoveDistance 
+      ? distanceToAttackRange * 0.9 // Move 90% of the remaining distance 
+      : effectiveMoveDistance;
+    
     // Calculate new potential position
-    const newX = this.position.x + direction.x * effectiveMoveDistance;
-    const newZ = this.position.z + direction.z * effectiveMoveDistance;
+    const newX = this.position.x + direction.x * adjustedMoveDistance;
+    const newZ = this.position.z + direction.z * adjustedMoveDistance;
     
     // Create a temporary position to check for collisions
     const newPosition = new THREE.Vector3(newX, this.position.y, newZ);
@@ -1060,7 +1074,7 @@ export class Zombie {
     const minZombieDistance = 1.5; // Minimum distance between zombies
     
     // Calculate distance to player to adjust spacing based on proximity to player
-    const distanceToPlayer = this.position.distanceTo(this.player.position);
+    // Reuse the existing distanceToPlayer variable
     
     // Adjust minimum distance based on proximity to player (increase spacing further away)
     const adjustedMinDistance = minZombieDistance * (0.8 + Math.min(distanceToPlayer / 30, 1.5));
@@ -1117,7 +1131,7 @@ export class Zombie {
       ).normalize();
       
       // Apply reduced speed when in formation mode
-      const formationSpeed = effectiveMoveDistance * 0.6;
+      const formationSpeed = adjustedMoveDistance * 0.6;
       newPosition.x = this.position.x + formationDir.x * formationSpeed;
       newPosition.z = this.position.z + formationDir.z * formationSpeed;
     }
@@ -1141,9 +1155,9 @@ export class Zombie {
       direction.normalize();
       
       // Recalculate position with adjusted direction and reduced speed
-      const adjustedMoveDistance = effectiveMoveDistance * 0.7;
-      newPosition.x = this.position.x + direction.x * adjustedMoveDistance;
-      newPosition.z = this.position.z + direction.z * adjustedMoveDistance;
+      const collisionAdjustedMoveDistance = adjustedMoveDistance * 0.7;
+      newPosition.x = this.position.x + direction.x * collisionAdjustedMoveDistance;
+      newPosition.z = this.position.z + direction.z * collisionAdjustedMoveDistance;
     }
     
     // Update position
