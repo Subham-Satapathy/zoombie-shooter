@@ -259,13 +259,6 @@ export class Player {
     this.health -= cappedDamage;
     console.log(`🩸 Player health reduced to: ${this.health}`);
     
-    // Trigger vibration on mobile devices
-    if ('vibrate' in navigator) {
-      // Scale vibration duration based on damage amount
-      const vibrationDuration = Math.floor(50 + cappedDamage * 10); // 50-350ms based on damage
-      navigator.vibrate(vibrationDuration);
-    }
-    
     // Check if player is dead before updating UI and showing effects
     if (this.health <= 0) {
       this.health = 0;
@@ -273,11 +266,6 @@ export class Player {
       
       // Update health UI
       this.updateHealthUI();
-      
-      // Stronger vibration for death on mobile
-      if ('vibrate' in navigator) {
-        navigator.vibrate([100, 50, 200, 50, 300]); // Pattern for death
-      }
       
       // Die
       this.die();
