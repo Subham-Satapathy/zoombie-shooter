@@ -310,7 +310,7 @@ export class Game {
         // On mobile, use touch movement for aiming
         if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
           // Use same sensitivity regardless of environment
-          const MOBILE_SENSITIVITY = 0.05;
+          const MOBILE_SENSITIVITY = 0.025;
           
           // Normalize for frame rate (target 60fps)
           const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x

@@ -139,7 +139,7 @@ export class Player {
     // Handle both mobile and non-mobile rotation
     if (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0) {
       // Desktop sensitivity is intentionally much lower than mobile (0.05)
-      const DESKTOP_SENSITIVITY = 0.0008 * environmentFactor;
+      const DESKTOP_SENSITIVITY = 0.0004 * environmentFactor;
       
       // Normalize for frame rate (target 60fps)
       const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x
