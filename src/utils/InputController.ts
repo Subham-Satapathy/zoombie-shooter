@@ -92,7 +92,8 @@ export class InputController {
             // Increase the sensitivity for mobile devices
             const sensitivity = 1.5; 
             this.mouseMovementX = (newX - this.mousePosition.x) * window.innerWidth * sensitivity;
-            this.mouseMovementY = (newY - this.mousePosition.y) * window.innerHeight * sensitivity;
+            // Invert the Y movement to fix the inverted controls
+            this.mouseMovementY = -(newY - this.mousePosition.y) * window.innerHeight * sensitivity;
             
             // Update current position
             this.mousePosition.x = newX;
