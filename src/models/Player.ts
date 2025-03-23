@@ -45,7 +45,7 @@ export class Player {
   
   // Inertia for smoother camera movement
   private rotationVelocity: THREE.Vector2 = new THREE.Vector2(0, 0);
-  private rotationDamping: number = 0.8; // Controls how quickly rotation slows down
+  private rotationDamping: number = 0.7; // Reduced from 0.8 to 0.7 for faster response
   
   // Add new property for invincibility after taking damage
   private lastDamageTime: number = 0;

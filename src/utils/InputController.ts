@@ -93,10 +93,10 @@ export class InputController {
               const environmentFactor = isLocalHost ? 1.0 : 0.6; // Reduce sensitivity on hosted domain
               
               // Only apply movement if there's a significant change to avoid drift
-              if (Math.abs(deltaX) > 0.2 || Math.abs(deltaY) > 0.2) {
+              if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
                 // Update rotation values based on touch movement - with improved sensitivity
-                this.mouseMovementX = deltaX * 1.5 * environmentFactor; // Adjust with environment factor
-                this.mouseMovementY = deltaY * 1.5 * environmentFactor; // Adjust with environment factor
+                this.mouseMovementX = deltaX * 3.0 * environmentFactor; // Increased from 1.5 to 3.0
+                this.mouseMovementY = deltaY * 3.0 * environmentFactor; // Increased from 1.5 to 3.0
               } else {
                 // Reset for small movements to prevent drift
                 this.mouseMovementX = 0;
