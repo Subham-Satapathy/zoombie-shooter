@@ -10,10 +10,16 @@
       window.addEventListener('DOMContentLoaded', function() {
         const restartBtn = document.getElementById('restart-game');
         if (restartBtn) {
-          restartBtn.addEventListener('click', function() {
+          restartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             console.log("RESTART BUTTON CLICKED - DIRECT EVENT HANDLER");
+            // Get the game instance
+            if (window.gameInstance) {
+              window.gameInstance.restart();
+            }
             // Force focus on the game container to help pointer lock
             document.getElementById('game-container').focus();
+            return false;
           });
         }
       });
@@ -57,7 +63,7 @@
           <input type="text" id="username-input" placeholder="Enter your username" maxlength="15">
           <button id="submit-score">Submit Score</button>
         </div>
-        <button id="restart-game" onclick="window.gameInstance.restart()">Play Again</button>
+        <button id="restart-game">Play Again</button>
       </div>
       
       <div id="leaderboard-popup" class="hidden">
