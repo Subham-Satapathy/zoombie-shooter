@@ -309,13 +309,8 @@ export class Game {
         
         // On mobile, use touch movement for aiming
         if (this.inputController.isMobile && (this.inputController.mouseMovementX !== 0 || this.inputController.mouseMovementY !== 0)) {
-          // Make sensitivity dependent on environment (hosted vs local)
-          const isLocalHost = window.location.hostname === 'localhost' || 
-                              window.location.hostname === '127.0.0.1';
-          const environmentFactor = isLocalHost ? 1.0 : 0.6; // Reduce sensitivity on hosted domain
-          
-          // Mobile sensitivity is intentionally much higher than desktop (0.0008)
-          const MOBILE_SENSITIVITY = 0.05 * environmentFactor;
+          // Use same sensitivity regardless of environment
+          const MOBILE_SENSITIVITY = 0.05;
           
           // Normalize for frame rate (target 60fps)
           const frameRateAdjust = Math.min(deltaTime * 60, 2.0); // Cap adjustment at 2.0x

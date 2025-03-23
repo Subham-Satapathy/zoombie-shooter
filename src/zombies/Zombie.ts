@@ -924,9 +924,10 @@ export class Zombie {
   update(deltaTime: number): void {
     if (this.isDead) return;
     
-    // Ensure deltaTime has a reasonable minimum value
-    // This prevents zombies from not moving if deltaTime is too small
-    deltaTime = Math.max(deltaTime, 0.016); // Minimum of 16ms (approx 60fps)
+    // Ensure deltaTime has a consistent value regardless of environment
+    // This prevents zombies from moving at different speeds in local vs deployed
+    // Using a fixed deltaTime gives consistent movement
+    deltaTime = 0.016; // Fixed at 16ms (60fps)
     
     // Only log occasionally to reduce spam
     const shouldLog = Math.random() < 0.05; // 5% chance to log
