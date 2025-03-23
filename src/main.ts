@@ -245,13 +245,48 @@ document.addEventListener('DOMContentLoaded', () => {
       game.restart()
       return false
     }
+    
+    // Add touch event for mobile devices
+    restartGameBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+      console.log("Restart button touched - mobile event handler")
+      game.restart()
+    })
   }
   
-  submitScoreBtn?.addEventListener('click', (e) => {
-    e.preventDefault()
-    const usernameInput = document.getElementById('username-input') as HTMLInputElement
-    game.submitScore(usernameInput.value)
-  })
+  // Submit score button event listeners
+  if (submitScoreBtn) {
+    submitScoreBtn.addEventListener('click', (e) => {
+      e.preventDefault()
+      const usernameInput = document.getElementById('username-input') as HTMLInputElement
+      game.submitScore(usernameInput.value)
+    })
+    
+    // Add touch event for mobile devices
+    submitScoreBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+      const usernameInput = document.getElementById('username-input') as HTMLInputElement
+      game.submitScore(usernameInput.value)
+    })
+  }
+  
+  // Make sure username input works properly on mobile
+  const usernameInput = document.getElementById('username-input') as HTMLInputElement
+  if (usernameInput) {
+    // Prevent default touch behavior that might interfere with input
+    usernameInput.addEventListener('touchstart', (e) => {
+      e.stopPropagation() // Don't prevent default to allow focus
+    })
+    
+    // Make sure to focus the input when touched
+    usernameInput.addEventListener('focus', () => {
+      // On iOS, sometimes we need to scroll to make sure the input is visible
+      // when the keyboard appears
+      setTimeout(() => {
+        usernameInput.scrollIntoView({behavior: 'smooth'})
+      }, 300)
+    })
+  }
   
   // Add a click handler on the game container to re-establish pointer lock
   const gameContainer = document.getElementById('game-container') as HTMLElement
