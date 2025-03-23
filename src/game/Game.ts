@@ -174,6 +174,9 @@ export class Game {
         
         console.log(`Wave ${e.detail.waveNumber} started - Ammo reset to ${currentWeapon.ammoInMagazine}/${currentWeapon.totalAmmo}`);
       }
+      
+      // Show horror-styled wave announcement
+      this.showWaveAnnouncement(e.detail.waveNumber);
     });
     
     // Handle wave complete event
@@ -756,5 +759,69 @@ export class Game {
   setupMobileControls(): void {
     // This method is now empty since we're using the same approach for all devices
     // We'll keep it for compatibility but it doesn't do anything specific anymore
+  }
+  
+  /**
+   * Show horror-styled wave announcement
+   */
+  private showWaveAnnouncement(waveNumber: number): void {
+    const announcement = document.getElementById('wave-announcement');
+    if (!announcement) return;
+    
+    // Set the text content
+    announcement.textContent = `WAVE ${waveNumber}`;
+    
+    // Make visible with horror effects
+    announcement.classList.remove('hidden');
+    announcement.classList.add('visible');
+    
+    // Add screen shake effect
+    document.body.classList.add('damage-flash');
+    
+    // Trigger blood spatter effect
+    const bloodSpatter = document.getElementById('blood-spatter');
+    if (bloodSpatter) {
+      bloodSpatter.classList.add('visible');
+      
+      // Remove the blood spatter after animation
+      setTimeout(() => {
+        bloodSpatter.classList.remove('visible');
+      }, 2000);
+    }
+    
+    // Create haunting sound effect if supported
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Create oscillator for eerie sound
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 1.5);
+      
+      // Add volume control
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+      
+      // Connect and start
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 1.5);
+    } catch (e) {
+      console.log('Audio not supported or blocked by browser policy');
+    }
+    
+    // Hide the announcement after a few seconds
+    setTimeout(() => {
+      announcement.classList.remove('visible');
+      document.body.classList.remove('damage-flash');
+      
+      // Fully hide after transition
+      setTimeout(() => {
+        announcement.classList.add('hidden');
+      }, 500);
+    }, 3000);
   }
 } 

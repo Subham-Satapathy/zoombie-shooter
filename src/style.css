@@ -106,6 +106,57 @@ body {
   border-radius: 5px;
 }
 
+#wave-announcement {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 90px;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  color: #a30000;
+  text-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.9),
+    0 0 30px rgba(255, 0, 0, 0.5),
+    0 0 40px rgba(0, 0, 0, 0.7),
+    0 0 70px rgba(255, 0, 0, 0.3);
+  z-index: 100;
+  text-align: center;
+  letter-spacing: 3px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  background: linear-gradient(to bottom, rgba(255, 0, 0, 0.1), rgba(0, 0, 0, 0));
+  padding: 40px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 800px;
+}
+
+#wave-announcement.visible {
+  opacity: 1;
+  animation: wavePulse 0.8s infinite alternate, waveShake 0.1s infinite alternate;
+}
+
+@keyframes wavePulse {
+  0% { transform: translate(-50%, -50%) scale(1); text-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 0, 0, 0.5); }
+  100% { transform: translate(-50%, -50%) scale(1.05); text-shadow: 0 0 25px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 0, 0, 0.8); }
+}
+
+@keyframes waveShake {
+  0% { transform: translate(calc(-50% + 3px), calc(-50% + 2px)) scale(1.03); }
+  25% { transform: translate(calc(-50% - 1px), calc(-50% - 1px)) scale(1.01); }
+  50% { transform: translate(calc(-50% + 0px), calc(-50% + 3px)) scale(1.02); }
+  75% { transform: translate(calc(-50% - 2px), calc(-50% + 0px)) scale(1.04); }
+  100% { transform: translate(calc(-50% + 1px), calc(-50% - 2px)) scale(1.01); }
+}
+
+@media (max-width: 768px) {
+  #wave-announcement {
+    font-size: 50px;
+    padding: 20px;
+  }
+}
+
 #ammo-counter {
   position: absolute;
   top: 60px;
