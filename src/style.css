@@ -29,6 +29,7 @@ body {
   justify-content: center;
   align-items: center;
   touch-action: none; /* Prevent browser handling of all touch actions */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 #ui-overlay {
@@ -640,6 +641,30 @@ body {
   #popup-leaderboard td {
     padding: 8px 5px;
     font-size: 0.9rem;
+  }
+  
+  /* Improve button accessibility on mobile */
+  #start-button,
+  #view-leaderboard,
+  #close-leaderboard {
+    padding: 15px 30px;
+    font-size: 1.3rem;
+    margin: 5px;
+    min-width: 200px;
+  }
+  
+  .start-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    gap: 15px;
+  }
+  
+  /* Fix any potential pointer events issues */
+  #start-screen button,
+  #leaderboard-popup button {
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 }
 

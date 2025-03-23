@@ -45,11 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
     game.renderer.domElement.requestPointerLock()
   })
   
+  // Add touchstart event for mobile devices
+  startButton?.addEventListener('touchstart', (e) => {
+    e.preventDefault()
+    // Hide the start screen
+    const startScreen = document.getElementById('start-screen') as HTMLElement
+    startScreen?.classList.add('hidden')
+    
+    // Start the game
+    game.start()
+    
+    // Focus on game container for pointer lock
+    const gameContainer = document.getElementById('game-container') as HTMLElement
+    gameContainer?.focus()
+  })
+  
   // Setup view leaderboard button
   const viewLeaderboardBtn = document.getElementById('view-leaderboard') as HTMLElement
   let leaderboardUpdateHandler: ((scores: any) => void) | null = null;
   
-  viewLeaderboardBtn?.addEventListener('click', async () => {
+  const showLeaderboard = async () => {
     // Show leaderboard popup
     const leaderboardPopup = document.getElementById('leaderboard-popup') as HTMLElement
     if (leaderboardPopup) {
@@ -111,11 +126,34 @@ document.addEventListener('DOMContentLoaded', () => {
         game.dbService.subscribeToLeaderboard(leaderboardUpdateHandler)
       }
     }
+  }
+  
+  viewLeaderboardBtn?.addEventListener('click', showLeaderboard)
+  
+  // Add touchstart event for mobile devices
+  viewLeaderboardBtn?.addEventListener('touchstart', (e) => {
+    e.preventDefault()
+    showLeaderboard()
   })
   
   // Setup close leaderboard button
   const closeLeaderboardBtn = document.getElementById('close-leaderboard') as HTMLElement
   closeLeaderboardBtn?.addEventListener('click', () => {
+    const leaderboardPopup = document.getElementById('leaderboard-popup') as HTMLElement
+    if (leaderboardPopup) {
+      leaderboardPopup.classList.add('hidden')
+      
+      // Unsubscribe from real-time updates when closing
+      if (leaderboardUpdateHandler) {
+        game.dbService.unsubscribeFromLeaderboard(leaderboardUpdateHandler)
+        leaderboardUpdateHandler = null
+      }
+    }
+  })
+  
+  // Add touchstart event for mobile devices
+  closeLeaderboardBtn?.addEventListener('touchstart', (e) => {
+    e.preventDefault()
     const leaderboardPopup = document.getElementById('leaderboard-popup') as HTMLElement
     if (leaderboardPopup) {
       leaderboardPopup.classList.add('hidden')
